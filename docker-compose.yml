@@ -1,0 +1,140 @@
+# 水课管理系统 - Docker Compose 编排
+# 启动: docker compose up -d
+# 停止: docker compose down
+# 查看日志: docker compose logs -f
+
+
+services:
+  # ========== 1. MySQL 数据库 ==========
+  mysql:
+    image: mysql:8.0
+    container_name: shuike-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: shuike@2026
+      MYSQL_DATABASE: shuike_manager
+      TZ: Asia/Shanghai
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docs/database.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql.cnf:/etc/mysql/conf.d/custom.cnf
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --skip-log-bin
+    healthcheck:
+      test: ["CMD","mysqladmin","ping","-h","localhost","-u","root","-pshuike@2026"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - shuike-net
+
+  # ========== 2. Redis 缓存 ==========
+  redis:
+    image: redis:7-alpine
+    container_name: shuike-redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass shuike@redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD","redis-cli","-a","shuike@redis","ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - shuike-net
+
+  # ========== 3. MinIO 文件存储 ==========
+  minio:
+    image: minio/minio:latest
+    container_name: shuike-minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"   # API 端口
+      - "9001:9001"   # Web 控制台
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD","curl","-f","http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shuike-net
+
+  # ========== 4. 后端服务 (Spring Boot) ==========
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: shuike-backend:1.0
+    container_name: shuike-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      # 数据库（Spring标准环境变量，优先级高于application.yml）
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: shuike@2026
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: shuike@redis
+      # MinIO (Docker内部服务名)
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      # 火山引擎 AI
+      VOLCANO_API_KEY: ${VOLCANO_API_KEY:-}
+      VOLCANO_ENDPOINT: ${VOLCANO_ENDPOINT:-https://ark.cn-beijing.volces.com/api/v3}
+      VOLCANO_DEFAULT_MODEL: ${VOLCANO_DEFAULT_MODEL:-ep-20260502165153-5zwf7}
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-shuike-production-jwt-secret-2026}
+      TZ: Asia/Shanghai
+      # Spring DataSource URL (override default)
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shuike_manager?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - shuike-net
+
+  # ========== 5. 前端服务 (Vue + Nginx) ==========
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: shuike-frontend:1.0
+    container_name: shuike-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - shuike-net
+
+# ========== 数据卷 ==========
+volumes:
+  mysql-data:
+  redis-data:
+  minio-data:
+
+# ========== 网络 ==========
+networks:
+  shuike-net:
+    driver: bridge

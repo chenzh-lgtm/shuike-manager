@@ -1,0 +1,214 @@
+/* ═══════════════════════════════════════════════
+   水课管理系统 — Warm Academic Design System
+   设计方向：温暖学术现代主义
+   核心意象：古老图书馆的温暖灯光 × 现代极简
+   ═══════════════════════════════════════════════ */
+
+:root {
+  /* —— 主色调：深黛绿（学术、信頼、沉静）—— */
+  --color-primary: #1a3c34;
+  --color-primary-light: #2a5c50;
+  --color-primary-dark: #0f2420;
+  --color-primary-bg: #e8f0ed;
+
+  /* —— 表面色：暖奶油（如旧纸、温暖、不刺眼）—— */
+  --color-bg: #faf7f2;
+  --color-surface: #ffffff;
+  --color-card: #f5f0e8;
+  --color-border: #e8e2d8;
+
+  /* —— 强调色：古铜金（温暖、学术荣誉感）—— */
+  --color-accent: #c8963e;
+  --color-accent-light: #e8c97a;
+  --color-accent-dark: #9a6f2a;
+
+  /* —— 文字色 —— */
+  --color-text: #2d2d2d;
+  --color-text-secondary: #6b6258;
+  --color-text-muted: #9e9489;
+
+  /* —— 功能色 —— */
+  --color-success: #4a7c59;
+  --color-success-bg: #e8f5e9;
+  --color-danger: #b84c3d;
+  --color-danger-bg: #fce8e6;
+  --color-warning: #c8963e;
+  --color-warning-bg: #fdf3e0;
+  --color-info: #5b7f95;
+  --color-info-bg: #e8f0f5;
+
+  /* —— 侧边栏 —— */
+  --sidebar-bg: #0f2420;
+  --sidebar-text: #c4d3cf;
+  --sidebar-active: var(--color-accent);
+  --sidebar-hover: #1a3c34;
+
+  /* —— 顶栏 —— */
+  --header-bg: #ffffff;
+  --header-height: 56px;
+  --sidebar-width: 220px;
+  --sidebar-collapsed: 64px;
+
+  /* —— 间距 —— */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* —— 圆角 —— */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* —— 阴影 —— */
+  --shadow-sm: 0 1px 3px rgba(15, 36, 32, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 36, 32, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 36, 32, 0.10);
+  --shadow-card: 0 2px 8px rgba(15, 36, 32, 0.05), 0 1px 2px rgba(15, 36, 32, 0.04);
+
+  /* —— 过渡 —— */
+  --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* —— 字体 —— */
+  --font-body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", -apple-system, sans-serif;
+  --font-display: "PingFang SC", "Hiragino Sans GB", "Noto Serif SC", "STSong", "Songti SC", serif;
+  --font-mono: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body, #app {
+  height: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* —— 滚动条 —— */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-text-muted); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-secondary); }
+
+/* ─── Element Plus 深度定制 ─── */
+
+/* 按钮 */
+.el-button--primary {
+  --el-button-bg-color: var(--color-primary);
+  --el-button-border-color: var(--color-primary);
+  --el-button-hover-bg-color: var(--color-primary-light);
+  --el-button-hover-border-color: var(--color-primary-light);
+  --el-button-active-bg-color: var(--color-primary-dark);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.el-button--success {
+  --el-button-bg-color: var(--color-success);
+  --el-button-border-color: var(--color-success);
+}
+.el-button--danger {
+  --el-button-bg-color: var(--color-danger);
+  --el-button-border-color: var(--color-danger);
+}
+.el-button--warning {
+  --el-button-bg-color: var(--color-accent);
+  --el-button-border-color: var(--color-accent);
+}
+
+/* 卡片 */
+.el-card {
+  border: none !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-card) !important;
+  background: var(--color-surface) !important;
+  transition: box-shadow var(--transition);
+}
+.el-card:hover { box-shadow: var(--shadow-md) !important; }
+.el-card__header {
+  border-bottom: 1px solid var(--color-border) !important;
+  padding: var(--space-md) var(--space-lg) !important;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+}
+.el-card__body { padding: var(--space-lg) !important; }
+
+/* 表格 */
+.el-table {
+  --el-table-border-color: var(--color-border);
+  --el-table-header-bg-color: var(--color-bg);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.el-table th.el-table__cell {
+  background: var(--color-bg) !important;
+  color: var(--color-text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--color-border) !important;
+}
+.el-table .el-table__row:hover > td {
+  background: var(--color-bg) !important;
+}
+
+/* 标签 */
+.el-tag { border-radius: var(--radius-sm); font-weight: 500; }
+.el-tag--success { background: var(--color-success-bg); color: var(--color-success); border-color: transparent; }
+.el-tag--danger { background: var(--color-danger-bg); color: var(--color-danger); border-color: transparent; }
+.el-tag--warning { background: var(--color-warning-bg); color: var(--color-accent-dark); border-color: transparent; }
+.el-tag--info { background: var(--color-info-bg); color: var(--color-info); border-color: transparent; }
+
+/* 输入框 */
+.el-input__wrapper {
+  border-radius: var(--radius-sm) !important;
+  box-shadow: 0 0 0 1px var(--color-border) inset !important;
+  transition: box-shadow var(--transition);
+}
+.el-input__wrapper:hover { box-shadow: 0 0 0 1px var(--color-text-muted) inset !important; }
+.el-input.is-focus .el-input__wrapper {
+  box-shadow: 0 0 0 2px var(--color-primary-light) inset !important;
+}
+
+/* 下拉菜单 */
+.el-dropdown-menu { border-radius: var(--radius-md) !important; border: 1px solid var(--color-border) !important; box-shadow: var(--shadow-lg) !important; }
+
+/* 分页 */
+.el-pagination { --el-pagination-hover-color: var(--color-accent); }
+.el-pager li.is-active { background: var(--color-primary) !important; }
+
+/* 对话框 */
+.el-dialog { border-radius: var(--radius-lg) !important; box-shadow: var(--shadow-lg) !important; }
+.el-dialog__header { border-bottom: 1px solid var(--color-border); padding: var(--space-md) var(--space-lg); }
+
+/* 步骤条 */
+.el-step__title.is-process { color: var(--color-primary) !important; font-weight: 600; }
+.el-step__head.is-process { color: var(--color-primary) !important; border-color: var(--color-primary) !important; }
+
+/* tabs */
+.el-tabs__item.is-active { color: var(--color-primary) !important; }
+.el-tabs__active-bar { background: var(--color-primary) !important; }
+
+/* 进度条 - 定制颜色 */
+.el-progress-bar__inner { transition: width 0.6s ease; }
+
+/* radio button */
+.el-radio-button__inner { border-radius: var(--radius-sm) !important; }
+
+/* ─── 通用动画 ─── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.anim-fade-up {
+  animation: fadeInUp 0.4s var(--transition) both;
+}

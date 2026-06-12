@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/usr/local/mysql/bin/mysql -u root -e \"USE shuike_manager; SHOW TABLES; SELECT COUNT\\(*\\) AS TableCount FROM information_schema.tables WHERE table_schema='shuike_manager';\")",
+      "Bash(mvn clean *)",
+      "Bash(/usr/local/mysql/bin/mysql -u root --default-character-set=utf8)",
+      "Bash(/usr/local/mysql/bin/mysql -u root --default-character-set=utf8 shuike_manager -e \"SELECT id, material_type, dimension, is_active, LEFT\\(template_text, 30\\) AS preview FROM ai_prompt_templates WHERE scene='MATERIAL_EVALUATION' ORDER BY material_type, dimension\")",
+      "Bash(curl -s http://localhost:8080/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"123456\"}')",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\('code:',d['code']\\);t=d['data']['templates'];print\\('类型:',list\\(t.keys\\(\\)\\)\\);print\\('授课计划模板数:',len\\(t.get\\('TEACHING_PLAN',[]\\)\\)\\)\")",
+      "Bash(pkill -f \"vite\")",
+      "Bash(nohup npm run dev)",
+      "Read(//private/tmp/**)",
+      "Bash(curl -s -o /dev/null -w \"HTTP: %{http_code}\" http://localhost:3000/)",
+      "Bash(curl -s http://localhost:8080/api/auth/login -H \"Content-Type: application/json\" -d '{\"username\":\"teacher1\",\"password\":\"123456\"}')",
+      "Bash(/usr/local/mysql/bin/mysql -u root shuike_manager -e \"ALTER TABLE phase_material_files MODIFY material_id BIGINT NULL COMMENT '材料ID'; ALTER TABLE teaching_plan_files MODIFY plan_id BIGINT NULL COMMENT '授课计划ID'; SHOW CREATE TABLE phase_material_files\\\\G\")",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\('code:',d['code'],'| fileId:',d.get\\('data',{}\\).get\\('fileId'\\)\\)\")",
+      "Bash(/usr/local/mysql/bin/mysql -u root shuike_manager -e ' *)",
+      "Bash(curl -s http://localhost:9000)",
+      "Bash(curl -s http://localhost:9000/shuike-manager/)",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\('code:',d['code'],'| storage:',d.get\\('data',{}\\).get\\('storage'\\),'| fileId:',d.get\\('data',{}\\).get\\('fileId'\\)\\)\")",
+      "Bash(/usr/local/bin/mc alias *)",
+      "Bash(mc ls *)",
+      "Bash(curl -s 'http://localhost:9000/shuike-manager?prefix=phase-materials/&list-type=2' -H 'Authorization: Basic __CMDSUB_OUTPUT__')",
+      "Bash(python3 -c ' *)",
+      "Bash(/usr/local/mysql/bin/mysql -u root --default-character-set=utf8 shuike_manager -e \"SELECT id, file_name, LEFT\\(file_url,50\\) AS minio_path, file_size FROM phase_material_files ORDER BY id DESC LIMIT 5\")",
+      "Bash(curl -s http://localhost:9000/shuike-manager?list-type=2 -H 'Authorization: Basic __CMDSUB_OUTPUT__')",
+      "Bash(/usr/local/mysql/bin/mysql -u root --default-character-set=utf8 shuike_manager -e \"SELECT id, material_id, file_name, LEFT\\(file_url,60\\) AS minio_path, file_size, CASE WHEN text_content IS NULL THEN 'NULL' WHEN text_content='' THEN 'EMPTY' ELSE CONCAT\\('有内容\\(',LENGTH\\(text_content\\),'字\\)'\\) END AS text_status FROM phase_material_files ORDER BY id DESC LIMIT 10\")",
+      "Bash(/usr/local/mysql/bin/mysql -u root --default-character-set=utf8 shuike_manager -e \"SELECT id, material_id, score, status, eval_time, cost_ms FROM ai_evaluations ORDER BY id DESC LIMIT 5\")",
+      "Bash(/usr/local/mysql/bin/mysql -u root --default-character-set=utf8 shuike_manager -e \"SELECT id, teacher_id, course_id, material_type, status, submit_time FROM phase_materials ORDER BY id DESC LIMIT 5\")",
+      "Bash(curl -s -X POST https://ark.cn-beijing.volces.com/api/v3/chat/completions -H 'Authorization: Bearer ark-206f19bd-c75f-4243-8b65-def780c211f6-504f9' -H 'Content-Type: application/json' -d '{\"model\":\"ep-20260502165153-5zwf7\",\"messages\":[{\"role\":\"user\",\"content\":\"你好，请回复OK\"}],\"temperature\":0.3,\"max_tokens\":50}' --connect-timeout 10 --max-time 30)"
+    ]
+  }
+}

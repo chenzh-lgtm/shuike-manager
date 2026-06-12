@@ -1,0 +1,6 @@
+# ECS 简化构建（无需 Maven，jar 在本地已打好）
+FROM amazoncorretto:8-alpine
+WORKDIR /app
+COPY target/teacher-file-manager-1.0.0.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-Duser.timezone=Asia/Shanghai", "-jar", "app.jar"]
