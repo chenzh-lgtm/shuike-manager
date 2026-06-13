@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>水课管理系统 · 路演PPT</title>
+<style>
+/* ===== CSS RESET + FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100vw;height:100vh;overflow:hidden;font-family:'Inter','Noto Sans SC',-apple-system,sans-serif;font-weight:400;line-height:1.6;color:#1a1a2e;background:#fff;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+
+/* ===== DECK SYSTEM ===== */
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:clamp(30px,6vh,70px) clamp(40px,8vw,120px);opacity:0;pointer-events:none;transition:opacity .5s ease,transform .5s ease;transform:translateX(40px);overflow-y:auto;overflow-x:hidden}
+.slide.is-active{opacity:1;pointer-events:auto;transform:translateX(0);z-index:2}
+.slide.is-prev{transform:translateX(-40px)}
+.slide::-webkit-scrollbar{width:4px}
+.slide::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px}
+
+/* slides that need scroll */
+.slide.scrollable{justify-content:flex-start;padding-top:clamp(20px,4vh,50px);padding-bottom:clamp(20px,4vh,50px)}
+
+/* ===== TYPOGRAPHY ===== */
+.eyebrow{font-size:clamp(10px,1.1vw,14px);font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#6366f1}
+h1.s1{font-size:clamp(28px,4.2vw,64px);line-height:1.1;font-weight:900;letter-spacing:-.02em}
+h2.s2{font-size:clamp(22px,3.2vw,46px);line-height:1.15;font-weight:800;letter-spacing:-.015em}
+h3.s3{font-size:clamp(16px,2vw,28px);line-height:1.25;font-weight:700}
+.grad{background:linear-gradient(135deg,#6366f1,#8b5cf6,#d946ef);-webkit-background-clip:text;background-clip:text;color:transparent}
+.grad-blue{background:linear-gradient(135deg,#2563eb,#6366f1);-webkit-background-clip:text;background-clip:text;color:transparent}
+.text-dim{color:#6b7280}
+.text-muted{color:#9ca3af}
+
+/* ===== LAYOUT HELPERS ===== */
+.row{display:flex;gap:clamp(12px,2vw,28px);align-items:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(12px,1.8vw,24px)}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,1.5vw,20px)}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(8px,1.2vw,16px)}
+.center{display:flex;align-items:center;justify-content:center}
+.tc{text-align:center}
+.gap-sm{gap:clamp(6px,1vw,14px)}
+.gap-md{gap:clamp(10px,1.5vw,20px)}
+.gap-lg{gap:clamp(14px,2vw,28px)}
+
+/* ===== CARDS ===== */
+.card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:clamp(10px,1.2vw,18px);padding:clamp(12px,1.8vw,24px);box-shadow:0 4px 16px rgba(0,0,0,.04);transition:transform .25s,box-shadow .25s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.08)}
+.card-accent{border-left:3px solid #6366f1}
+.card-grad{border:1px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#6366f1,#d946ef) border-box;border-radius:clamp(10px,1.2vw,18px);padding:clamp(12px,1.8vw,24px);box-shadow:0 4px 20px rgba(99,102,241,.08)}
+.icon-lg{font-size:clamp(22px,2.5vw,38px)}
+
+/* ===== TAGS ===== */
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:clamp(10px,1vw,13px);font-weight:600;background:#f3f4f6;color:#4b5563;white-space:nowrap}
+.tag-accent{background:rgba(99,102,241,.1);color:#6366f1}
+.tag-ok{background:rgba(34,197,94,.1);color:#16a34a}
+.tag-warn{background:rgba(251,191,36,.12);color:#d97706}
+.tag-bad{background:rgba(239,68,68,.08);color:#dc2626}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+
+/* ===== METRIC ===== */
+.metric{text-align:center}
+.metric .num{font-size:clamp(28px,4vw,56px);font-weight:900;line-height:1;background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.metric .label{font-size:clamp(10px,1vw,13px);color:#6b7280;margin-top:4px}
+
+/* ===== SCREENSHOT ===== */
+.ss{position:relative;border-radius:clamp(8px,1vw,14px);overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.06);background:#f9fafb}
+.ss img{width:100%;display:block}
+.ss .cap{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;padding:clamp(8px,1.2vw,14px);font-size:clamp(10px,1vw,13px);font-weight:600}
+
+/* ===== COVER ===== */
+.cover{position:relative}
+.cover-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(99,102,241,.08),transparent 60%),radial-gradient(ellipse at 30% 70%,rgba(217,70,239,.06),transparent 60%);z-index:-1}
+.cover-stat{text-align:center;flex-shrink:0}
+.cover-stat-num{display:block;font-size:clamp(22px,3vw,44px);font-weight:900;color:#6366f1;line-height:1}
+.cover-stat-label{display:block;color:#6b7280;font-size:clamp(10px,1vw,13px);margin-top:2px}
+
+/* ===== BG DECO ===== */
+.section-num{font-size:clamp(120px,18vw,260px);font-weight:900;color:rgba(0,0,0,.02);position:absolute;right:30px;bottom:10px;z-index:0;line-height:1;pointer-events:none}
+.slide > :not(.section-num,.page-badge,.deck-footer,.cover-bg,.cover-blob,.cover-top-bar,.nav-dots){position:relative;z-index:1}
+.page-num{font-size:clamp(10px,1vw,13px);color:#9ca3af;font-weight:500}
+
+/* ===== FLOW ===== */
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;padding:clamp(8px,1.2vw,16px) 0}
+.flow-item{background:rgba(99,102,241,.08);color:#6366f1;padding:6px 14px;border-radius:8px;font-weight:600;font-size:clamp(11px,1.1vw,15px);white-space:nowrap}
+.flow-arrow{color:#9ca3af;font-weight:700;font-size:clamp(12px,1.2vw,18px)}
+
+/* ===== ASK BOX ===== */
+.ask-box{background:linear-gradient(135deg,#6366f1,#8b5cf6,#d946ef);color:#fff;padding:clamp(18px,2.5vw,36px) clamp(22px,3vw,44px);border-radius:clamp(12px,1.5vw,22px);box-shadow:0 16px 48px rgba(99,102,241,.25)}
+
+/* ===== PROBLEM CARD ===== */
+.problem-card{border-left:4px solid #ef4444;padding-left:14px;margin-bottom:10px}
+.problem-card .fix{background:#f0fdf4;color:#16a34a;padding:6px 12px;border-radius:6px;font-size:clamp(10px,0.95vw,13px);font-weight:600;margin-top:6px}
+
+/* ===== NAV DOTS ===== */
+.nav-dots{position:fixed;right:clamp(10px,2vw,22px);top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:8px}
+.nav-dot{width:10px;height:10px;border-radius:50%;background:rgba(0,0,0,.18);cursor:pointer;transition:all .35s ease;border:2px solid transparent;position:relative}
+.nav-dot:hover{background:#6366f1;transform:scale(1.4)}
+.nav-dot.active{background:#6366f1;border-color:#8b5cf6;box-shadow:0 0 10px rgba(99,102,241,.4);transform:scale(1.3)}
+.nav-dot::after{content:attr(title);position:absolute;right:20px;top:50%;transform:translateY(-50%);white-space:nowrap;font-size:11px;font-weight:600;color:#374151;background:#fff;border:1px solid rgba(0,0,0,.1);padding:3px 10px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .25s;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.nav-dot:hover::after{opacity:1}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar{position:fixed;left:0;right:0;bottom:0;height:3px;background:transparent;z-index:100}
+.progress-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#6366f1,#d946ef);transition:width .4s ease}
+
+/* ===== DECK FOOTER ===== */
+.deck-footer{position:absolute;bottom:clamp(10px,2vh,24px);left:clamp(20px,3vw,60px);right:clamp(20px,3vw,60px);display:flex;justify-content:space-between;font-size:clamp(10px,1vw,12px);color:#9ca3af;z-index:10}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:768px){
+  .g3,.g4{grid-template-columns:repeat(2,1fr)}
+  .g2{grid-template-columns:1fr}
+  .hide-sm{display:none}
+}
+@media (max-width:500px){
+  .g3,.g4{grid-template-columns:1fr}
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes kf-fade-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.anim-fade-up{animation:kf-fade-up .7s cubic-bezier(.4,0,.2,1) both}
+
+/* ===== WHITE BG FOR SLIDEs ===== */
+.slide{background:#fff}
+
+/* ===== 全局右上角校徽 ===== */
+.page-badge{position:absolute;top:clamp(10px,2vh,22px);right:clamp(16px,2.5vw,50px);z-index:10;display:flex;align-items:center;gap:6px}
+.page-badge img{width:clamp(24px,3vw,38px);height:clamp(24px,3vw,38px);border-radius:8px;display:block;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.page-badge span{font-size:clamp(9px,0.8vw,11px);color:#9ca3af;font-weight:500;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- =========================================================== 1. 封面 =========================================================== -->
+<section class="slide cover" data-title="封面" style="justify-content:center">
+  <div class="cover-bg"></div>
+  <!-- 顶部品牌栏 -->
+  <div class="cover-top-bar" style="position:absolute;top:clamp(14px,2.5vh,30px);left:clamp(20px,3vw,60px);right:clamp(20px,3vw,60px);display:flex;align-items:center;justify-content:space-between;z-index:1">
+    <div style="display:flex;align-items:center;gap:clamp(6px,1vw,12px)">
+      <span style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#d946ef)"></span>
+      <span style="font-weight:800;font-size:clamp(12px,1.2vw,17px);letter-spacing:-.01em">水课管理系统 · ShuiKe Manager</span>
+    </div>
+    <span style="font-size:clamp(10px,0.9vw,13px);color:#9ca3af;font-weight:500">v1.0 · 2026</span>
+  </div>
+
+  <!-- 主体：上中下三段布局 -->
+  <div style="z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center;max-width:clamp(700px,85vw,1100px);gap:clamp(16px,3vh,36px)">
+    <!-- 段1：学校/平台类别标签 -->
+    <div class="row" style="gap:10px;justify-content:center">
+      <span class="tag tag-accent" style="font-size:clamp(10px,0.95vw,13px);padding:5px 14px">🏫 高等院校</span>
+      <span class="tag" style="font-size:clamp(10px,0.95vw,13px);padding:5px 14px;background:rgba(139,92,246,.1);color:#8b5cf6">🤖 AI 驱动</span>
+      <span class="tag" style="font-size:clamp(10px,0.95vw,13px);padding:5px 14px;background:rgba(217,70,239,.1);color:#d946ef">📊 数据智能</span>
+    </div>
+
+    <!-- 段2：主标题 -->
+    <h1 class="s1 anim-fade-up" data-anim="fade-up" style="font-size:clamp(36px,5.5vw,82px);text-align:center;margin:0">
+      让AI成为<br>教学管理的<span class="grad">超级助手</span>
+    </h1>
+
+    <!-- 段3：副标题描述 -->
+    <p style="font-size:clamp(13px,1.4vw,20px);color:#6b7280;max-width:62ch;line-height:1.75;text-align:center;margin:0">
+      融合火山引擎大模型（豆包/DeepSeek），实现教学材料<b>四维智能评审</b>、多级审核流转、产业需求对齐分析的一站式教学管理平台。
+    </p>
+
+    <!-- 段4：核心数据栏 -->
+    <div class="row" style="gap:clamp(20px,4vw,52px);justify-content:center">
+      <div class="cover-stat"><span class="cover-stat-num">4</span><span class="cover-stat-label">角色协同</span></div>
+      <div class="cover-stat"><span class="cover-stat-num">16+</span><span class="cover-stat-label">Prompt模板</span></div>
+      <div class="cover-stat"><span class="cover-stat-num">42/42</span><span class="cover-stat-label">测试全通过</span></div>
+      <div class="cover-stat"><span class="cover-stat-num">5</span><span class="cover-stat-label">Docker服务</span></div>
+      <div class="cover-stat"><span class="cover-stat-num">96</span><span class="cover-stat-label">Java文件</span></div>
+      <div class="cover-stat"><span class="cover-stat-num">33</span><span class="cover-stat-label">Vue页面</span></div>
+    </div>
+
+    <!-- 段5：校徽 + 汇报人（小而精美） -->
+    <div style="display:flex;align-items:center;gap:clamp(8px,1.2vw,16px)">
+      <div style="width:clamp(40px,4.5vw,64px);height:clamp(40px,4.5vw,64px);border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(99,102,241,.12)">
+        <img src="校徽.jpg" alt="校徽" style="width:100%;height:100%;object-fit:cover">
+      </div>
+      <div style="text-align:left">
+        <div style="font-size:clamp(13px,1.3vw,20px);font-weight:700;color:#1a1a2e">陈志煌</div>
+        <div style="font-size:clamp(10px,0.85vw,13px);color:#9ca3af">项目负责人 · 汇报人</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部信息栏 -->
+  <div class="deck-footer" style="position:absolute;bottom:clamp(10px,2vh,24px);left:clamp(20px,3vw,60px);right:clamp(20px,3vw,60px);display:flex;justify-content:space-between;z-index:10">
+    <div style="display:flex;align-items:center;gap:clamp(10px,2vw,28px);font-size:clamp(10px,0.95vw,13px);color:#9ca3af">
+      <span>🐙 github.com/chenzh-lgtm</span>
+      <span>🌐 47.97.68.38</span>
+    </div>
+    <span id="pageInfo1" style="font-size:clamp(10px,0.95vw,13px);color:#9ca3af">1/16</span>
+  </div>
+</section>
+
+<!-- =========================================================== 2. 项目背景 =========================================================== -->
+<section class="slide" data-title="项目背景">
+  <span class="section-num">01</span>
+  <p class="eyebrow">项目背景</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(10px,2vh,20px)">高校教学管理数字化转型的<span class="grad">必然选择</span></h2>
+  <div class="g3">
+    <div class="card">
+      <div class="icon-lg">🏫</div>
+      <h3 class="s3" style="margin:8px 0 4px">教学材料种类多</h3>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px)">每学期需审核<b>4类材料</b>：授课计划、教案、课件、考核方案。一所中型高校每年产生数千份教学文档。</p>
+    </div>
+    <div class="card">
+      <div class="icon-lg">👥</div>
+      <h3 class="s3" style="margin:8px 0 4px">多角色协作复杂</h3>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px)">教师提交→学院主任审核→教务处终审，<b>三级流转</b>，涉及4种角色权限体系。</p>
+    </div>
+    <div class="card">
+      <div class="icon-lg">📋</div>
+      <h3 class="s3" style="margin:8px 0 4px">评审标准难统一</h3>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px)">人工审核主观偏差大（>40%），缺乏量化评审维度，难以追溯评价依据和改进方向。</p>
+    </div>
+  </div>
+  <div class="g3" style="margin-top:clamp(10px,1.5vw,18px)">
+    <div class="card">
+      <div class="icon-lg">⏱️</div>
+      <h3 class="s3" style="margin:8px 0 4px">审核周期长</h3>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px)">纸质审批<b>3天以上</b>，一个学院50位老师×4份材料=200份，光审阅就要<b>100-150小时</b>。</p>
+      <span class="tag tag-bad" style="margin-top:8px">4-5倍效率差距</span>
+    </div>
+    <div class="card">
+      <div class="icon-lg">🔌</div>
+      <h3 class="s3" style="margin:8px 0 4px">数据孤岛严重</h3>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px)">教学材料、课程标准、产业需求<b>三者脱节</b>，无法反向检验课程体系是否符合市场需要。</p>
+      <span class="tag tag-warn" style="margin-top:8px">需求匹配盲区</span>
+    </div>
+    <div class="card">
+      <div class="icon-lg">📄</div>
+      <h3 class="s3" style="margin:8px 0 4px">归档检索困难</h3>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px)">纸质材料<b>堆积如山</b>，历史材料查找耗时、无法在线预览，无法批量统计分析。</p>
+      <span class="tag tag-bad" style="margin-top:8px">检索耗时 > 10min</span>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== 3. 痛点量化 =========================================================== -->
+<section class="slide" data-title="痛点量化">
+  <span class="section-num">02</span>
+  <p class="eyebrow">痛点量化</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(10px,2vh,20px)">数据说话：<span class="grad">旧模式已不堪重负</span></h2>
+  <div class="g3" style="margin-bottom:clamp(10px,1.5vw,18px)">
+    <div class="card card-grad" style="text-align:center">
+      <div class="metric"><div class="num" style="font-size:clamp(34px,5vw,72px)">45</div><div class="label">分钟/每份材料</div></div>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,12px);margin-top:6px">人工审核一份教学材料的平均耗时</p>
+    </div>
+    <div class="card card-grad" style="text-align:center">
+      <div class="metric"><div class="num" style="font-size:clamp(34px,5vw,72px)">150</div><div class="label">小时/每学期</div></div>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,12px);margin-top:6px">一个学院（50位教师）总审核时间</p>
+    </div>
+    <div class="card card-grad" style="text-align:center">
+      <div class="metric"><div class="num" style="font-size:clamp(34px,5vw,72px)">9</div><div class="label">个SaaS工具</div></div>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,12px);margin-top:6px">传统流程中教师需要切换使用的工具数</p>
+    </div>
+  </div>
+  <div style="background:linear-gradient(135deg,#fef2f2,#fff7ed,#fefce8);border-radius:clamp(10px,1.5vw,20px);padding:clamp(14px,2vw,28px);border:1px solid rgba(239,68,68,.15)">
+    <h3 class="s3" style="color:#dc2626;margin-bottom:8px">⚠️ 四个核心矛盾</h3>
+    <div class="g2 gap-sm">
+      <div><span style="font-weight:700;color:#dc2626">效率矛盾：</span><span class="text-dim" style="font-size:clamp(11px,1vw,14px)">审核量指数增长 vs 审核人员编制不变</span></div>
+      <div><span style="font-weight:700;color:#dc2626">质量矛盾：</span><span class="text-dim" style="font-size:clamp(11px,1vw,14px)">要求标准化评审 vs 人工主观判断偏差大</span></div>
+      <div><span style="font-weight:700;color:#dc2626">价值矛盾：</span><span class="text-dim" style="font-size:clamp(11px,1vw,14px)">需要个性化改进建议 vs 人工无法逐份深度分析</span></div>
+      <div><span style="font-weight:700;color:#dc2626">产业矛盾：</span><span class="text-dim" style="font-size:clamp(11px,1vw,14px)">教学内容需对接产业需求 vs 缺乏系统性分析工具</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== 4. 解决方案 =========================================================== -->
+<section class="slide" data-title="解决方案概览">
+  <span class="section-num">03</span>
+  <p class="eyebrow">解决方案</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,16px)">三大核心能力，构建<span class="grad">教学管理闭环</span></h2>
+  <div class="g3">
+    <div class="card card-accent">
+      <h3 class="s3" style="color:#6366f1">🤖 AI 四维并发评审</h3>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px);margin-top:6px">接入火山引擎大模型，<b>4个维度并发调用</b>（内容完整性30%、课标匹配度30%、格式规范性20%、创新性20%），<b>90秒内</b>完成全部评审，自动生成评分与优化建议。</p>
+      <div class="tags" style="margin-top:8px">
+        <span class="tag tag-accent">并发评审</span><span class="tag tag-accent">加权评分</span><span class="tag tag-accent">90秒出结果</span>
+      </div>
+    </div>
+    <div class="card card-accent">
+      <h3 class="s3" style="color:#6366f1">📋 数据驱动审核流程</h3>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px);margin-top:6px">教师提交→AI评审→学院主任审核（通过/驳回含修改要求）→教务处终审→归档，<b>审核耗时从3天降至1天以内</b>。</p>
+      <div class="tags" style="margin-top:8px">
+        <span class="tag tag-ok">效率提升3x+</span><span class="tag tag-accent">在线流转</span>
+      </div>
+    </div>
+    <div class="card card-accent">
+      <h3 class="s3" style="color:#6366f1">📊 产业需求对齐分析</h3>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px);margin-top:6px">基于人培方案全文，LLM生成<b>8章节论文式报告</b>（专业概况→产业背景→人才需求→课程体系→学习成果→就业前景→差距分析→改进建议），含6张ECharts交互图表。</p>
+      <div class="tags" style="margin-top:8px">
+        <span class="tag tag-accent">8章学术报告</span>
+      </div>
+    </div>
+  </div>
+  <div style="background:#f8fafc;border-radius:clamp(8px,1vw,14px);padding:clamp(12px,1.5vw,20px);margin-top:clamp(10px,1.5vw,18px)">
+    <p style="font-weight:700;margin-bottom:6px">🔗 核心业务流程</p>
+    <div class="flow">
+      <span class="flow-item">📝 教师提交材料</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">🤖 AI自动四维评审</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">👨‍🏫 学院主任审核</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item">🏛️ 教务处终审</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item" style="background:#6366f1;color:#fff">✅ 归档入库</span>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== 5. AI评审详解 =========================================================== -->
+<section class="slide" data-title="AI评审详解">
+  <span class="section-num">04</span>
+  <p class="eyebrow">AI 评审体系</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,16px)">四维并发评审：<span class="grad">30x 效率提升</span>的引擎</h2>
+  <div class="g2">
+    <div>
+      <div class="g3 gap-sm" style="margin-bottom:clamp(8px,1.2vw,14px)">
+        <div class="card" style="text-align:center;padding:clamp(10px,1.5vw,20px)">
+          <h4 style="color:#6366f1;font-size:clamp(13px,1.2vw,17px);margin-bottom:4px">内容完整性</h4>
+          <span class="tag tag-accent">权重 30%</span>
+          <p class="text-dim" style="margin-top:6px;font-size:clamp(10px,0.9vw,12px)">检查教学要素覆盖度，判断是否涵盖教学目标、重难点、课时安排等核心要素</p>
+        </div>
+        <div class="card" style="text-align:center;padding:clamp(10px,1.5vw,20px)">
+          <h4 style="color:#6366f1;font-size:clamp(13px,1.2vw,17px);margin-bottom:4px">课标匹配度</h4>
+          <span class="tag tag-accent">权重 30%</span>
+          <p class="text-dim" style="margin-top:6px;font-size:clamp(10px,0.9vw,12px)">自动对齐人培方案和课程标准，检测教学内容与目标的匹配程度</p>
+        </div>
+        <div class="card" style="text-align:center;padding:clamp(10px,1.5vw,20px)">
+          <h4 style="color:#6366f1;font-size:clamp(13px,1.2vw,17px);margin-bottom:4px">格式规范性</h4>
+          <span class="tag tag-accent">权重 20%</span>
+          <p class="text-dim" style="margin-top:6px;font-size:clamp(10px,0.9vw,12px)">检查版面布局、字体规范、章节结构等标准化格式要求</p>
+        </div>
+        <div class="card" style="text-align:center;padding:clamp(10px,1.5vw,20px)">
+          <h4 style="color:#6366f1;font-size:clamp(13px,1.2vw,17px);margin-bottom:4px">创新性</h4>
+          <span class="tag tag-accent">权重 20%</span>
+          <p class="text-dim" style="margin-top:6px;font-size:clamp(10px,0.9vw,12px)">评估教学设计创新、多媒体运用、互动设计等现代化教学手段</p>
+        </div>
+      </div>
+      <div class="g3 gap-sm">
+        <div class="card" style="text-align:center;padding:clamp(10px,1.2vw,16px)"><span class="metric"><div class="num">30s</div><div class="label">单份材料评审</div></span></div>
+        <div class="card" style="text-align:center;padding:clamp(10px,1.2vw,16px)"><span class="metric"><div class="num">4维</div><div class="label">并发调用</div></span></div>
+        <div class="card" style="text-align:center;padding:clamp(10px,1.2vw,16px)"><span class="metric"><div class="num">≥85%</div><div class="label">评审准确率</div></span></div>
+      </div>
+    </div>
+    <div class="ss">
+      <img src="../../screenshots/教研室主任查看AI评分界面.jpg" alt="AI评分界面" style="width:100%;height:100%;object-fit:cover">
+      <div class="cap">AI评审结果展示 — 四维评分+优化建议详情</div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== 6. 多角色工作台 =========================================================== -->
+<section class="slide" data-title="多角色工作台">
+  <span class="section-num">05</span>
+  <p class="eyebrow">角色体系</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">四角色专属工作台，<span class="grad">各司其职</span></h2>
+  <div class="g4 gap-sm" style="margin-bottom:clamp(8px,1.2vw,14px)">
+    <div class="card" style="text-align:center">
+      <div style="font-size:clamp(24px,3vw,40px)">👨‍🏫</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px);margin:4px 0">教师</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">提交4类教学材料<br>查看AI评审结果<br>查阅产业分析报告<br><b>材料统计卡片</b></p>
+      <span class="tag tag-accent" style="margin-top:4px">8个页面</span>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:clamp(24px,3vw,40px)">👨‍💼</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px);margin:4px 0">学院主任</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">审核本院材料<br>查看AI评分详情<br>在线预览材料文件<br><b>ECharts 5张图表</b></p>
+      <span class="tag tag-accent" style="margin-top:4px">数据隔离</span>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:clamp(24px,3vw,40px)">🏛️</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px);margin:4px 0">教务处</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">终审+材料归档<br>用户管理+批量导入<br>Prompt模板管理<br><b>ECharts 7张图表</b></p>
+      <span class="tag tag-accent" style="margin-top:4px">全局管理</span>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:clamp(24px,3vw,40px)">🎓</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px);margin:4px 0">院长</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">人培方案管理<br>课程标准管理<br>发起产业需求分析<br><b>人培/课标总数</b></p>
+      <span class="tag tag-accent" style="margin-top:4px">战略分析</span>
+    </div>
+  </div>
+  <div class="g2 gap-sm">
+    <div class="ss"><img src="../../screenshots/教务处管理端首页.jpg" alt="教务处首页" style="width:100%;height:100%;object-fit:contain"><div class="cap">教务处工作台 — 全局数据总览</div></div>
+    <div class="ss"><img src="../../screenshots/教师端首页.jpg" alt="教师首页" style="width:100%;height:100%;object-fit:contain"><div class="cap">教师工作台 — 材料提交进度</div></div>
+  </div>
+</section>
+
+<!-- =========================================================== 7. Prompt模板 =========================================================== -->
+<section class="slide" data-title="Prompt模板管理">
+  <span class="section-num">06</span>
+  <p class="eyebrow">Prompt 模板体系</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">16套专业Prompt，<span class="grad">在线编辑+自动版本管理</span></h2>
+  <div class="g2">
+    <div>
+      <p class="text-dim" style="font-size:clamp(11px,1vw,14px);margin-bottom:clamp(8px,1.2vw,14px)">
+        <b>4种教学材料 × 4个评审维度 = 16个专业模板</b>，教务处可在线实时编辑，系统自动记录修改历史、支持版本回溯，确保AI评审标准始终符合学校教学管理制度的最新要求。
+      </p>
+      <div class="g2 gap-sm">
+        <div class="card card-accent"><h4 style="color:#6366f1;font-size:clamp(12px,1vw,14px)">授课计划 Prompt</h4><p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">聚焦学期规划、课时分配合理性</p></div>
+        <div class="card card-accent"><h4 style="color:#6366f1;font-size:clamp(12px,1vw,14px)">教案 Prompt</h4><p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">评价课堂教学设计质量</p></div>
+        <div class="card card-accent"><h4 style="color:#6366f1;font-size:clamp(12px,1vw,14px)">课件 Prompt</h4><p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">关注多媒体、交互创新维度</p></div>
+        <div class="card card-accent"><h4 style="color:#6366f1;font-size:clamp(12px,1vw,14px)">考核方案 Prompt</h4><p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">聚焦评价科学性、考核合理性</p></div>
+      </div>
+      <div class="tags" style="margin-top:clamp(8px,1vw,14px)">
+        <span class="tag tag-accent">在线编辑</span><span class="tag tag-accent">版本管理</span><span class="tag tag-accent">历史回溯</span><span class="tag tag-accent">实时生效</span>
+      </div>
+    </div>
+    <div class="ss"><img src="../../screenshots/教务处材料评分提示词管理界面.jpg" alt="Prompt管理" style="width:100%;height:100%;object-fit:contain"><div class="cap">教务处 Prompt 模板在线编辑界面</div></div>
+  </div>
+</section>
+
+<!-- =========================================================== 8. 对齐分析 =========================================================== -->
+<section class="slide" data-title="对齐分析">
+  <span class="section-num">07</span>
+  <p class="eyebrow">产业需求对齐分析</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">LLM 生成<span class="grad">8章学术级报告</span></h2>
+  <div class="g2">
+    <div>
+      <div class="g2 gap-sm" style="margin-bottom:clamp(8px,1vw,14px)">
+        <div class="card" style="padding:clamp(8px,1vw,14px);font-size:clamp(11px,0.95vw,13px)"><b>📖 一、</b>专业概况与产业背景</div>
+        <div class="card" style="padding:clamp(8px,1vw,14px);font-size:clamp(11px,0.95vw,13px)"><b>📋 二、</b>产业人才需求分析</div>
+        <div class="card" style="padding:clamp(8px,1vw,14px);font-size:clamp(11px,0.95vw,13px)"><b>🏗️ 三、</b>课程体系匹配分析</div>
+        <div class="card" style="padding:clamp(8px,1vw,14px);font-size:clamp(11px,0.95vw,13px)"><b>🎓 四、</b>学习成果与能力达成</div>
+        <div class="card" style="padding:clamp(8px,1vw,14px);font-size:clamp(11px,0.95vw,13px)"><b>💼 五、</b>就业前景分析</div>
+        <div class="card" style="padding:clamp(8px,1vw,14px);font-size:clamp(11px,0.95vw,13px)"><b>🔍 六、</b>差距分析与短板识别</div>
+        <div class="card" style="padding:clamp(8px,1vw,14px);font-size:clamp(11px,0.95vw,13px)"><b>💡 七、</b>改进建议与改革方向</div>
+        <div class="card" style="padding:clamp(8px,1vw,14px);font-size:clamp(11px,0.95vw,13px)"><b>⭐ 八、</b>综合评分与结论</div>
+      </div>
+      <div class="tags">
+        <span class="tag tag-accent">6张交互图表</span><span class="tag tag-accent">岗位柱状图</span><span class="tag tag-accent">技能雷达图</span><span class="tag tag-accent">就业竞争力</span>
+      </div>
+    </div>
+    <div class="ss"><img src="../../screenshots/院长端查看产业需求报告.jpg" alt="产业需求报告" style="width:100%;height:100%;object-fit:contain"><div class="cap">产业需求对齐分析报告 — 8章节论文式呈现</div></div>
+  </div>
+</section>
+
+<!-- =========================================================== 9. 审核流程详解 =========================================================== -->
+<section class="slide" data-title="审核流程">
+  <span class="section-num">08</span>
+  <p class="eyebrow">审核流程</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">两级审核闭环，<span class="grad">全流程可追溯</span></h2>
+  <div style="background:#f8fafc;border-radius:clamp(10px,1.5vw,20px);padding:clamp(14px,2vw,28px);margin-bottom:clamp(8px,1.2vw,14px)">
+    <div class="flow" style="font-size:clamp(13px,1.2vw,16px)">
+      <span class="flow-item" style="font-size:inherit">📝 教师提交</span><span class="flow-arrow">→</span>
+      <span class="flow-item" style="font-size:inherit">⚙️ AI评审中</span><span class="flow-arrow">→</span>
+      <span class="flow-item" style="font-size:inherit">👨‍💼 待主任审核</span><span class="flow-arrow">→</span>
+      <span class="flow-item" style="font-size:inherit">🏛️ 待教务处终审</span><span class="flow-arrow">→</span>
+      <span class="flow-item" style="background:#16a34a;color:#fff;font-size:inherit">✅ 已通过</span>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <span class="tag tag-warn">↩ 任意阶段可驳回</span>
+      <span style="margin:0 8px;color:#9ca3af">|</span>
+      <span class="tag tag-ok">📢 全流程通知推送</span>
+      <span style="margin:0 8px;color:#9ca3af">|</span>
+      <span class="tag tag-accent">🕐 审核耗时 < 1天</span>
+    </div>
+  </div>
+  <div class="g2 gap-sm">
+    <div class="ss"><img src="../../screenshots/教研室主任材料审核页面.jpg" alt="主任审核" style="width:100%;height:100%;object-fit:contain"><div class="cap">学院主任审核 — 查看AI评分+在线审阅</div></div>
+    <div class="ss"><img src="../../screenshots/教务处材料终审页面.jpg" alt="教务处终审" style="width:100%;height:100%;object-fit:contain"><div class="cap">教务处终审 — 全局视角+审批归档</div></div>
+  </div>
+</section>
+
+<!-- =========================================================== 10. 技术架构 =========================================================== -->
+<section class="slide" data-title="技术架构">
+  <span class="section-num">09</span>
+  <p class="eyebrow">技术架构</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">微服务 + Docker 编排，<span class="grad">生产级企业架构</span></h2>
+  <div class="g2">
+    <div class="col gap-sm">
+      <div class="card card-accent"><h4 style="color:#6366f1;font-size:clamp(12px,1vw,15px)">🎯 后端技术栈</h4><p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">Spring Boot 2.7 + Java 8 · MyBatis-Plus 3.5 · JWT + Spring Security RBAC · CompletableFuture 四维并发 · RestTemplate LLM调用</p></div>
+      <div class="card card-accent"><h4 style="color:#6366f1;font-size:clamp(12px,1vw,15px)">🎨 前端技术栈</h4><p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">Vue 3.4 + TypeScript · Element Plus 2.7 · Pinia 2.x + Axios · ECharts 5.x · Nginx 反向代理</p></div>
+      <div class="card card-accent"><h4 style="color:#6366f1;font-size:clamp(12px,1vw,15px)">🚀 基础设施</h4><p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">Docker Compose 5服务 · MySQL 8.0 + Redis 7 + MinIO · 阿里云 ECS + ACR · 火山引擎方舟API</p></div>
+    </div>
+    <div class="col gap-sm">
+      <div class="card card-accent"><h4 style="color:#6366f1;font-size:clamp(12px,1vw,15px)">📊 项目规模</h4><div class="g2" style="margin-top:6px;font-size:clamp(10px,0.9vw,13px)"><div><b>96</b> 个Java文件<br><b>33</b> 个Vue页面<br><b>19</b> 张数据库表</div><div><b>50+</b> 个REST API<br><b>42</b> 个测试用例<br><b>5</b> 个Docker服务</div></div></div>
+      <div class="card card-accent"><h4 style="color:#6366f1;font-size:clamp(12px,1vw,15px)">✅ 质量保障</h4><p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">42个集成测试（100%通过）· 闭环E2E · GlobalExceptionHandler · ApiResponse&lt;T&gt; 统一封装 · 异步线程池</p></div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:clamp(8px,1.2vw,16px)">
+    <div style="display:inline-flex;align-items:center;gap:clamp(6px,1vw,14px);background:#f8fafc;padding:clamp(8px,1.2vw,16px) clamp(14px,2vw,24px);border-radius:clamp(8px,1vw,12px);font-size:clamp(10px,0.9vw,13px);font-weight:600">
+      <span>🐳 MySQL</span><span style="color:#9ca3af">|</span><span>🗄️ Redis</span><span style="color:#9ca3af">|</span><span>📦 MinIO</span><span style="color:#9ca3af">|</span><span>☕ Backend :8080</span><span style="color:#9ca3af">|</span><span>🖥️ Frontend :80</span>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== 11. 问题与解决1 =========================================================== -->
+<section class="slide" data-title="问题解决1">
+  <span class="section-num">10</span>
+  <p class="eyebrow">挑战与应对（上）</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">五个关键挑战，<span class="grad">五次创新突破</span></h2>
+  <div class="g2 gap-sm">
+    <div class="card" style="border-left:4px solid #ef4444;padding:clamp(10px,1.5vw,20px)">
+      <h4 style="font-size:clamp(12px,1vw,15px)">❌ LLM JSON 响应不稳定</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">AI生成的报告可能带markdown标记（```json），或JSON因内容过长被截断。</p>
+      <p class="fix"><b>✅ 解决：</b>extractJson()预处理→正则移除markdown→定位{}边界→容错解析+详细错误日志。配合max_tokens=6000保障长输出完整。</p>
+    </div>
+    <div class="card" style="border-left:4px solid #ef4444;padding:clamp(10px,1.5vw,20px)">
+      <h4 style="font-size:clamp(12px,1vw,15px)">❌ @Async 丢失SecurityContext</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">异步线程池的独立线程无法继承HTTP请求的认证信息，initiatorId始终为null。</p>
+      <p class="fix"><b>✅ 解决：</b>Controller层提前取出userId→显式传参→异步线程直接使用。制定@Async规范文档，禁止异步方法调用SecurityUtils。</p>
+    </div>
+    <div class="card" style="border-left:4px solid #ef4444;padding:clamp(10px,1.5vw,20px)">
+      <h4 style="font-size:clamp(12px,1vw,15px)">❌ Schema版本不一致</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">本地v2.0 schema与生产v1.0不匹配，INSERT报Unknown column 'report_json'。</p>
+      <p class="fix"><b>✅ 解决：</b>ALTER TABLE增量补列→建立自动化schema版本检查→部署前对比差异→生成增量迁移脚本。</p>
+    </div>
+    <div class="card" style="border-left:4px solid #ef4444;padding:clamp(10px,1.5vw,20px)">
+      <h4 style="font-size:clamp(12px,1vw,15px)">❌ Mac ARM64构建AMD64极慢</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">QEMU模拟Java编译，每字节码指令→50+ARM指令。一次docker build耗时3h+。</p>
+      <p class="fix"><b>✅ 解决：</b>本地mvn编译JAR(30s)→scp到ECS→docker cp替换→restart，总耗时<b>1-2分钟</b>。</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== 12. 问题与解决2 + 前端UI修复 =========================================================== -->
+<section class="slide" data-title="问题解决2">
+  <span class="section-num">11</span>
+  <p class="eyebrow">挑战与应对（下）</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">兼容性坑点 + <span class="grad">前端细节打磨</span></h2>
+  <div class="g2 gap-sm">
+    <div class="card" style="border-left:4px solid #ef4444;padding:clamp(10px,1.5vw,20px)">
+      <h4 style="font-size:clamp(12px,1vw,15px)">❌ MySQL 中文乱码</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">ECS MySQL 5.6默认latin1编码，存储中文数据乱码。</p>
+      <p class="fix"><b>✅ 解决：</b>添加skip-character-set-client-handshake配置+挂载mysql.cnf→确认utf8mb4编码+重建表。</p>
+    </div>
+    <div class="card" style="border-left:4px solid #ef4444;padding:clamp(10px,1.5vw,20px)">
+      <h4 style="font-size:clamp(12px,1vw,15px)">❌ MinIO Bucket 缺失</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">ECS首次部署MinIO容器，shuike-manager存储桶未创建，文件上传失败。</p>
+      <p class="fix"><b>✅ 解决：</b>docker exec创建bucket→写入docker-compose健康检查脚本→首次启动自动检测。</p>
+    </div>
+    <div class="card" style="border-left:4px solid #f59e0b;padding:clamp(10px,1.5vw,20px)">
+      <h4 style="font-size:clamp(12px,1vw,15px)">⚡ 学院搜索下拉框太窄</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">用户管理界面el-select默认宽度导致学院名称被截断显示不全。</p>
+      <p class="fix"><b>✅ 解决：</b>添加style="width:180px"→全局排查所有el-select→制定UI最小宽度检查清单。</p>
+    </div>
+    <div class="card" style="border-left:4px solid #f59e0b;padding:clamp(10px,1.5vw,20px)">
+      <h4 style="font-size:clamp(12px,1vw,15px)">⚡ 对齐分析结果看不到</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.85vw,12px)">院长端发起分析后列表始终为空，但LLM返回成功（日志可见）。</p>
+      <p class="fix"><b>✅ 解决：</b>定位到DB缺列+异步丢上下文两个根因→数据库补列+代码修复→部署问题修复指导文档化。</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== 13. 亮点功能 =========================================================== -->
+<section class="slide" data-title="亮点功能">
+  <span class="section-num">12</span>
+  <p class="eyebrow">更多亮点</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">细节决定品质：<span class="grad">六个暖心功能</span></h2>
+  <div class="g2 gap-sm">
+    <div class="card card-grad">
+      <div style="font-size:clamp(20px,2.2vw,32px)">📢</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px)">通知中心</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">材料提交、AI完成、审核结果、终审提醒<b>全流程7类场景自动推送</b>，铃铛角标30s自动刷新，红点未读提醒。</p>
+    </div>
+    <div class="card card-grad">
+      <div style="font-size:clamp(20px,2.2vw,32px)">📥</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px)">CSV批量导入</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">支持CSV/TXT格式一键导入用户，<b>密码默认规则fzrjxy+工号</b>，学院识别兼容名称或ID，导入结果详细反馈。</p>
+    </div>
+    <div class="card card-grad">
+      <div style="font-size:clamp(20px,2.2vw,32px)">📁</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px)">材料归档</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">教务处按<b>类型/课程/教师多维筛选</b>，Word/PDF在线预览，批量下载。</p>
+    </div>
+    <div class="card card-grad">
+      <div style="font-size:clamp(20px,2.2vw,32px)">🗑️</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px)">安全删除</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">删除材料时分步清理：<b>MinIO文件→AI评审记录→数据库记录</b>，彻底杜绝残留数据。</p>
+    </div>
+    <div class="card card-grad">
+      <div style="font-size:clamp(20px,2.2vw,32px)">🔐</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px)">数据隔离</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)"><b>主任仅见本院材料</b>、教师仅见个人材料、院长仅见本学院人培方案，RBAC权限配合college_id过滤。</p>
+    </div>
+    <div class="card card-grad">
+      <div style="font-size:clamp(20px,2.2vw,32px)">📄</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px)">文档解析</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)"><b>PDFBox + POI</b> 双引擎解析Word/PDF文件全文本，内容自动缓存，支持AI评审直接读取材料内容。</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== 14. 项目成果 =========================================================== -->
+<section class="slide" data-title="项目成果">
+  <span class="section-num">13</span>
+  <p class="eyebrow">项目成果</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">从0到1交付：<span class="grad">完整生产级系统</span></h2>
+  <div class="g3" style="margin-bottom:clamp(10px,1.5vw,18px)">
+    <div class="card" style="text-align:center"><div class="metric"><div class="num">42/42</div><div class="label">测试全通过 ✅</div></div></div>
+    <div class="card" style="text-align:center"><div class="metric"><div class="num">19</div><div class="label">数据库表</div></div></div>
+    <div class="card" style="text-align:center"><div class="metric"><div class="num">50+</div><div class="label">REST API端点</div></div></div>
+  </div>
+  <div class="g4 gap-sm" style="margin-bottom:clamp(10px,1.5vw,18px)">
+    <div class="card" style="text-align:center;padding:clamp(8px,1.2vw,16px)"><div class="icon-lg">📝</div><h4 style="font-size:clamp(11px,0.95vw,13px)">96个</h4><p class="text-muted" style="font-size:clamp(9px,0.8vw,11px)">Java文件</p></div>
+    <div class="card" style="text-align:center;padding:clamp(8px,1.2vw,16px)"><div class="icon-lg">🎨</div><h4 style="font-size:clamp(11px,0.95vw,13px)">33个</h4><p class="text-muted" style="font-size:clamp(9px,0.8vw,11px)">Vue页面</p></div>
+    <div class="card" style="text-align:center;padding:clamp(8px,1.2vw,16px)"><div class="icon-lg">📊</div><h4 style="font-size:clamp(11px,0.95vw,13px)">12+</h4><p class="text-muted" style="font-size:clamp(9px,0.8vw,11px)">ECharts图表</p></div>
+    <div class="card" style="text-align:center;padding:clamp(8px,1.2vw,16px)"><div class="icon-lg">📚</div><h4 style="font-size:clamp(11px,0.95vw,13px)">8份</h4><p class="text-muted" style="font-size:clamp(9px,0.8vw,11px)">技术文档</p></div>
+  </div>
+  <div class="ask-box">
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:clamp(12px,1.5vw,20px)">
+      <div><div style="font-size:clamp(22px,2.8vw,40px);font-weight:900">Docker</div><div style="font-size:clamp(10px,0.9vw,12px);opacity:.85">5服务一键部署</div></div>
+      <div><div style="font-size:clamp(22px,2.8vw,40px);font-weight:900">ECS</div><div style="font-size:clamp(10px,0.9vw,12px);opacity:.85">阿里云生产运行</div></div>
+      <div><div style="font-size:clamp(22px,2.8vw,40px);font-weight:900">ACR</div><div style="font-size:clamp(10px,0.9vw,12px);opacity:.85">镜像托管分发</div></div>
+      <div><div style="font-size:clamp(22px,2.8vw,40px);font-weight:900">豆包</div><div style="font-size:clamp(10px,0.9vw,12px);opacity:.85">+ DeepSeek</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== 15. 价值总结 =========================================================== -->
+<section class="slide" data-title="项目总结">
+  <span class="section-num">14</span>
+  <p class="eyebrow">核心价值</p>
+  <h2 class="s2" style="max-width:50ch;margin-bottom:clamp(8px,1.5vh,14px)">为什么这个项目<span class="grad">值得认可</span></h2>
+  <div class="g3" style="margin-bottom:clamp(8px,1vw,12px)">
+    <div class="card card-grad" style="text-align:center">
+      <div class="icon-lg">🚀</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px);margin-top:8px">真实的业务痛点</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">高校教学材料审核是实实在在的工作量问题，AI替代人工初审具有明确的ROI——<b>审核耗时从3天→1天，效率提升3倍</b>。</p>
+    </div>
+    <div class="card card-grad" style="text-align:center">
+      <div class="icon-lg">🧠</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px);margin-top:8px">创新的技术方案</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)">四维并发评审+Prompt模板引擎+产业对齐分析，<b>不是简单的"调API打分"，而是完整的AI驱动教学管理方法论</b>。</p>
+    </div>
+    <div class="card card-grad" style="text-align:center">
+      <div class="icon-lg">🏗️</div>
+      <h4 style="font-size:clamp(12px,1.1vw,16px);margin-top:8px">完整的工程交付</h4>
+      <p class="text-dim" style="font-size:clamp(10px,0.9vw,13px)"><b>PRD→设计→开发→测试→Docker→ECS部署</b>全链路闭环，42个测试用例100%通过，生产环境稳定运行。</p>
+    </div>
+  </div>
+  <div class="row" style="justify-content:center;gap:clamp(10px,1.5vw,20px)">
+    <span class="tag tag-ok" style="font-size:clamp(11px,1vw,14px);padding:6px 16px">✅ 完整闭环</span>
+    <span class="tag tag-accent" style="font-size:clamp(11px,1vw,14px);padding:6px 16px">✅ 生产线运行</span>
+    <span class="tag tag-ok" style="font-size:clamp(11px,1vw,14px);padding:6px 16px">✅ 42测试全绿</span>
+    <span class="tag tag-accent" style="font-size:clamp(11px,1vw,14px);padding:6px 16px">✅ 文档齐全</span>
+  </div>
+</section>
+
+<!-- =========================================================== 16. 感谢 =========================================================== -->
+<section class="slide" data-title="感谢" style="display:flex;align-items:center;justify-content:center;flex-direction:column">
+  <div class="cover-bg"></div>
+  <div style="z-index:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1">
+    <div style="font-size:clamp(60px,10vw,160px);font-weight:900;line-height:1;background:linear-gradient(135deg,#6366f1,#8b5cf6,#d946ef);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:clamp(8px,2vh,20px)">
+      感谢聆听
+    </div>
+    <p style="font-size:clamp(14px,1.8vw,26px);color:#6b7280;margin-bottom:clamp(12px,2vh,24px)">
+      水课管理系统 · 高校教学材料智能化分析与审核平台
+    </p>
+    <div class="row" style="justify-content:center;gap:clamp(8px,1vw,14px);margin-bottom:clamp(8px,1.5vh,16px)">
+      <span class="tag tag-accent" style="font-size:clamp(11px,1vw,15px);padding:6px 16px">🚀 让AI成为教学管理的超级助手</span>
+    </div>
+    <div class="row" style="justify-content:center;gap:clamp(16px,3vw,48px);font-size:clamp(11px,1vw,15px);color:#9ca3af">
+      <span>汇报人：陈志煌</span>
+      <span>🐙 github.com/chenzh-lgtm</span>
+      <span>🌐 47.97.68.38</span>
+      <span>📅 2026-06</span>
+    </div>
+  </div>
+  <div class="deck-footer"><span>水课管理系统 · ShuiKe Manager</span><span id="pageInfo2">16/16</span></div>
+</section>
+
+<!-- ===== 导航 ===== -->
+<div class="nav-dots" id="navDots"></div>
+<div class="progress-bar"><span></span></div>
+
+</div><!-- /deck -->
+
+<script>
+(function(){
+  var slides = document.querySelectorAll('.slide');
+  var total = slides.length;
+  var idx = 0;
+
+  // 构建导航圆点
+  var dc = document.getElementById('navDots');
+  for (var i = 0; i < total; i++) {
+    var dot = document.createElement('span');
+    dot.className = 'nav-dot';
+    dot.title = slides[i].getAttribute('data-title') || ('Slide '+(i+1));
+    dot.setAttribute('data-i', i);
+    dot.addEventListener('click', function(){ go(parseInt(this.getAttribute('data-i'))); });
+    dc.appendChild(dot);
+  }
+  var dots = dc.querySelectorAll('.nav-dot');
+
+  // 进度条
+  var barFill = document.querySelector('.progress-bar span');
+  var pageInfo1 = document.getElementById('pageInfo1');
+  var pageInfo2 = document.getElementById('pageInfo2');
+  function updatePageInfo(n){
+    var t = (n+1) + '/' + total;
+    if (pageInfo1) pageInfo1.textContent = t;
+    if (pageInfo2) pageInfo2.textContent = t;
+  }
+
+  function go(n) {
+    n = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i) {
+      s.classList.toggle('is-active', i === n);
+      s.classList.toggle('is-prev', i < n);
+    });
+    dots.forEach(function(d, i) { d.classList.toggle('active', i === n); });
+    idx = n;
+    barFill.style.width = ((n + 1) / total * 100) + '%';
+    updatePageInfo(n);
+    location.hash = '#/' + (n + 1);
+
+    // 重新触发动画
+    var active = slides[n];
+    active.querySelectorAll('[data-anim]').forEach(function(el) {
+      var a = el.getAttribute('data-anim');
+      el.classList.remove('anim-' + a);
+      void el.offsetWidth;
+      el.classList.add('anim-' + a);
+    });
+  }
+
+  // 滚轮
+  var wheelTimer = 0;
+  document.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var now = Date.now();
+    if (now - wheelTimer < 700) return;
+    wheelTimer = now;
+    if (e.deltaY > 0) go(idx + 1);
+    else go(idx - 1);
+  }, { passive: false });
+
+  // 键盘
+  document.addEventListener('keydown', function(e) {
+    switch(e.key) {
+      case 'ArrowRight': case ' ': case 'PageDown': go(idx + 1); e.preventDefault(); break;
+      case 'ArrowLeft':  case 'PageUp':   go(idx - 1); e.preventDefault(); break;
+      case 'Home': go(0); e.preventDefault(); break;
+      case 'End':  go(total - 1); e.preventDefault(); break;
+      case 'f': case 'F':
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+        break;
+    }
+  });
+
+  // 触摸
+  var touchY = 0;
+  document.addEventListener('touchstart', function(e) { touchY = e.touches[0].clientY; });
+  document.addEventListener('touchend', function(e) {
+    var dy = touchY - e.changedTouches[0].clientY;
+    if (Math.abs(dy) > 50) { if (dy > 0) go(idx + 1); else go(idx - 1); }
+  });
+
+  // ---- 给非封面页右上角注入小校徽 ----
+  slides.forEach(function(s) {
+    if (s.getAttribute('data-title') === '封面') return; // 封面有自己的校徽
+    var badge = document.createElement('div');
+    badge.className = 'page-badge';
+    badge.innerHTML = '<span>水课管理系统</span><img src="校徽.jpg" alt="校徽">';
+    s.appendChild(badge);
+  });
+
+  // hash
+  var m = /^#\/(\d+)/.exec(location.hash || '');
+  go(m ? Math.max(0, parseInt(m[1], 10) - 1) : 0);
+})();
+</script>
+
+</body>
+</html>

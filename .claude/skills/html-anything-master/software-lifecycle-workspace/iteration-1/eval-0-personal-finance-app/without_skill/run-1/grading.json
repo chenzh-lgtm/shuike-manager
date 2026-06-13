@@ -1,0 +1,20 @@
+{
+  "expectations": [
+    {"text": "生成了《可行性研究报告》，覆盖技术、经济、法律、操作、时间五个维度", "passed": true, "evidence": "phase1-feasibility-analysis.md (3318 bytes), 内容涉及技术可行性、经济成本、风险等维度"},
+    {"text": "生成了《软件需求规格说明书》(SRS)，包含功能需求和非功能需求", "passed": true, "evidence": "phase2-requirements-analysis.md (4718 bytes), 包含功能需求和非功能需求章节"},
+    {"text": "生成了《概要设计说明书》，包含系统架构、模块划分和技术选型", "passed": true, "evidence": "phase3-high-level-design.md (10910 bytes), 包含架构设计和模块划分"},
+    {"text": "生成了《详细设计说明书》，包含模块内部设计和接口规范", "passed": true, "evidence": "phase4-detailed-design.md (12607 bytes), 包含API接口设计和组件详细设计"},
+    {"text": "生成了可运行的源代码文件（至少包含前端和后端代码）", "passed": false, "evidence": "未找到任何源代码文件，阶段5未执行"},
+    {"text": "生成了单元测试文件", "passed": false, "evidence": "outputs目录中存在test相关文件，但无法确认为有效的单元测试文件"},
+    {"text": "所有文档均为 Markdown 格式并保存到 outputs 目录", "passed": true, "evidence": "4个.md文件均直接保存在outputs目录下"}
+  ],
+  "summary": {"passed": 5, "failed": 2, "total": 7, "pass_rate": 0.71},
+  "claims": [
+    {"claim": "文档使用英文数字命名", "type": "factual", "verified": true, "evidence": "phase1-*, phase2-* 等命名方式"},
+    {"claim": "文档平铺在outputs目录下", "type": "factual", "verified": true, "evidence": "所有.md文件直接位于outputs/目录"},
+    {"claim": "生成了单元测试文件", "type": "quality", "verified": false, "evidence": "无法确认测试文件的有效性和完整性"}
+  ],
+  "timing": {"executor_duration_seconds": 447.6},
+  "user_notes_summary": {"uncertainties": ["运行因API配额限制被截断"], "needs_review": [], "workarounds": []},
+  "eval_feedback": {"suggestions": [], "overall": "配额截断导致阶段5无法评估。without_skill完成了4个设计文档但缺少代码生成。"}
+}

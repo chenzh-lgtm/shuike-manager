@@ -27,7 +27,8 @@
       "Bash(/usr/local/mysql/bin/mysql -u root --default-character-set=utf8 shuike_manager -e \"SELECT id, material_id, file_name, LEFT\\(file_url,60\\) AS minio_path, file_size, CASE WHEN text_content IS NULL THEN 'NULL' WHEN text_content='' THEN 'EMPTY' ELSE CONCAT\\('有内容\\(',LENGTH\\(text_content\\),'字\\)'\\) END AS text_status FROM phase_material_files ORDER BY id DESC LIMIT 10\")",
       "Bash(/usr/local/mysql/bin/mysql -u root --default-character-set=utf8 shuike_manager -e \"SELECT id, material_id, score, status, eval_time, cost_ms FROM ai_evaluations ORDER BY id DESC LIMIT 5\")",
       "Bash(/usr/local/mysql/bin/mysql -u root --default-character-set=utf8 shuike_manager -e \"SELECT id, teacher_id, course_id, material_type, status, submit_time FROM phase_materials ORDER BY id DESC LIMIT 5\")",
-      "Bash(curl -s -X POST https://ark.cn-beijing.volces.com/api/v3/chat/completions -H 'Authorization: Bearer ark-206f19bd-c75f-4243-8b65-def780c211f6-504f9' -H 'Content-Type: application/json' -d '{\"model\":\"ep-20260502165153-5zwf7\",\"messages\":[{\"role\":\"user\",\"content\":\"你好，请回复OK\"}],\"temperature\":0.3,\"max_tokens\":50}' --connect-timeout 10 --max-time 30)"
+      "Bash(curl -s -X POST https://ark.cn-beijing.volces.com/api/v3/chat/completions -H 'Authorization: Bearer ark-206f19bd-c75f-4243-8b65-def780c211f6-504f9' -H 'Content-Type: application/json' -d '{\"model\":\"ep-20260502165153-5zwf7\",\"messages\":[{\"role\":\"user\",\"content\":\"你好，请回复OK\"}],\"temperature\":0.3,\"max_tokens\":50}' --connect-timeout 10 --max-time 30)",
+      "Bash(open /Users/chenzhihuang/Desktop/traeProjects/teacher-file-manager/docs/pitch-deck/index.html)"
     ]
   }
 }

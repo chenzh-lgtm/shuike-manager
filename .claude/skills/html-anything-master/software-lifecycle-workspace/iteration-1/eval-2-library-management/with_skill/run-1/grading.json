@@ -1,0 +1,19 @@
+{
+  "expectations": [
+    {"text": "生成了《可行性研究报告》，覆盖技术、经济、法律、操作、时间五个维度", "passed": true, "evidence": "docs/feasibility-study/《可行性研究报告》.md (6973 bytes)"},
+    {"text": "生成了《软件需求规格说明书》(SRS)，包含功能需求和非功能需求", "passed": true, "evidence": "docs/requirements/《软件需求规格说明书》.md (9619 bytes)"},
+    {"text": "生成了《概要设计说明书》，包含系统架构、模块划分和技术选型", "passed": true, "evidence": "docs/design/《概要设计说明书》.md (11677 bytes)"},
+    {"text": "生成了《详细设计说明书》，包含模块内部设计和接口规范", "passed": true, "evidence": "docs/design/《详细设计说明书》.md (22200 bytes), 最详尽的详细设计文档"},
+    {"text": "生成了可运行的 Java/Spring Boot 源代码文件", "passed": false, "evidence": "未找到 .java 源代码文件，阶段5未执行"},
+    {"text": "生成了单元测试文件", "passed": false, "evidence": "未找到测试文件，阶段5未执行"},
+    {"text": "所有文档均为 Markdown 格式并保存到 outputs 目录", "passed": true, "evidence": "4个.md文件保存在 outputs/docs/ 子目录"}
+  ],
+  "summary": {"passed": 5, "failed": 2, "total": 7, "pass_rate": 0.71},
+  "claims": [
+    {"claim": "详细设计文档最为详尽", "type": "quality", "verified": true, "evidence": "22200字节，是六个run中最大的详细设计文档"},
+    {"claim": "文档使用规范中文模板名和子目录组织", "type": "factual", "verified": true, "evidence": "三级目录结构: feasibility-study/, requirements/, design/"}
+  ],
+  "timing": {"executor_duration_seconds": 575.3},
+  "user_notes_summary": {"uncertainties": ["运行因API配额限制被截断"], "needs_review": [], "workarounds": []},
+  "eval_feedback": {"suggestions": [], "overall": "配额截断导致阶段5无法评估。前4个阶段文档质量良好。"}
+}

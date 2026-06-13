@@ -1,0 +1,19 @@
+{
+  "expectations": [
+    {"text": "生成了《可行性研究报告》，覆盖技术、经济、法律、操作、时间五个维度", "passed": true, "evidence": "01-feasibility-analysis.md (3087 bytes)"},
+    {"text": "生成了《软件需求规格说明书》(SRS)，包含功能需求和非功能需求", "passed": true, "evidence": "02-requirements-analysis.md (4569 bytes)"},
+    {"text": "生成了《概要设计说明书》，包含系统架构、模块划分和技术选型", "passed": true, "evidence": "03-high-level-design.md (6597 bytes)"},
+    {"text": "生成了《详细设计说明书》，包含模块内部设计和接口规范", "passed": true, "evidence": "04-detailed-design.md (11479 bytes)"},
+    {"text": "生成了可运行的 Python 源代码文件", "passed": true, "evidence": "batch_rename.py (12358 bytes), 包含完整的命令行工具实现"},
+    {"text": "生成了单元测试文件（如使用 pytest 或 unittest）", "passed": false, "evidence": "未找到独立测试文件，虽然batch_rename.py内部可能包含测试代码但不符合单元测试规范"},
+    {"text": "所有文档均为 Markdown 格式并保存到 outputs 目录", "passed": true, "evidence": "5个文件(4个.md + 1个.py)保存在outputs目录"}
+  ],
+  "summary": {"passed": 6, "failed": 1, "total": 7, "pass_rate": 0.86},
+  "claims": [
+    {"claim": "生成了完整的Python CLI工具", "type": "quality", "verified": true, "evidence": "batch_rename.py 12358字节，包含argparse、正则替换、文件操作等"},
+    {"claim": "代码生成先于单元测试", "type": "process", "verified": true, "evidence": "该run在配额截断前完成了代码但未生成测试文件"}
+  ],
+  "timing": {"executor_duration_seconds": 475.2},
+  "user_notes_summary": {"uncertainties": ["运行因API配额限制被截断，但已完成4阶段文档+代码生成"], "needs_review": [], "workarounds": []},
+  "eval_feedback": {"suggestions": [], "overall": "唯一生成了可运行代码的run，但缺少测试文件。"}
+}

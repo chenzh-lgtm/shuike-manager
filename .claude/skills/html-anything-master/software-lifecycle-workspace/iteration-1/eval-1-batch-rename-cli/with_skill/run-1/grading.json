@@ -1,0 +1,19 @@
+{
+  "expectations": [
+    {"text": "生成了《可行性研究报告》，覆盖技术、经济、法律、操作、时间五个维度", "passed": true, "evidence": "docs/feasibility-study/《可行性研究报告》.md (5606 bytes), 包含五个维度的可行性分析"},
+    {"text": "生成了《软件需求规格说明书》(SRS)，包含功能需求和非功能需求", "passed": true, "evidence": "docs/requirements/《软件需求规格说明书》.md (8954 bytes), 包含功能需求和非功能需求"},
+    {"text": "生成了《概要设计说明书》，包含系统架构、模块划分和技术选型", "passed": true, "evidence": "docs/design/《概要设计说明书》.md (9099 bytes), 包含架构设计和模块划分"},
+    {"text": "生成了《详细设计说明书》，包含模块内部设计和接口规范", "passed": true, "evidence": "docs/design/《详细设计说明书》.md (21095 bytes), 包含类定义、算法伪代码和异常处理策略"},
+    {"text": "生成了可运行的 Python 源代码文件", "passed": false, "evidence": "未找到任何 .py 源代码文件，阶段5未执行"},
+    {"text": "生成了单元测试文件（如使用 pytest 或 unittest）", "passed": false, "evidence": "未找到测试文件，阶段5未执行"},
+    {"text": "所有文档均为 Markdown 格式并保存到 outputs 目录", "passed": true, "evidence": "4个.md文件保存在 outputs/docs/ 子目录下"}
+  ],
+  "summary": {"passed": 5, "failed": 2, "total": 7, "pass_rate": 0.71},
+  "claims": [
+    {"claim": "详细设计包含类定义和伪代码", "type": "quality", "verified": true, "evidence": "《详细设计说明书》.md 21095字节，内容详尽"},
+    {"claim": "文档使用规范中文模板名和子目录组织", "type": "factual", "verified": true, "evidence": "四个文档分别位于 feasibility-study/, requirements/, design/ 子目录"}
+  ],
+  "timing": {"executor_duration_seconds": 545.4},
+  "user_notes_summary": {"uncertainties": ["运行因API配额限制被截断，仅完成4/5阶段"], "needs_review": [], "workarounds": []},
+  "eval_feedback": {"suggestions": [], "overall": "配额截断导致阶段5无法评估。文档质量高，详细设计达21KB。"}
+}

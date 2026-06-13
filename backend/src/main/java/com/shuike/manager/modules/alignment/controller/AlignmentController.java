@@ -30,7 +30,8 @@ public class AlignmentController {
     public ApiResponse<String> analyze(@RequestBody Map<String, Long> body) {
         Long tcpId = body.get("tcpId");
         if (tcpId == null) return ApiResponse.error(400, "请选择人培方案");
-        service.analyzeAsync(tcpId);
+        Long userId = SecurityUtils.getCurrentUserId();
+        service.analyzeAsync(tcpId, userId);
         return ApiResponse.success("AI分析已启动，预计1-2分钟完成，请稍后刷新列表查看");
     }
 

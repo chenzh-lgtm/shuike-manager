@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**项目规则**: 请同时遵守 [.claude/rules/shuike-manager.md](.claude/rules/shuike-manager.md) 中的全部规则。
+
 ---
 
 ## Project Overview
@@ -181,3 +183,50 @@ All responses wrapped in `ApiResponse<T>`: `{code:200, message:"success", data:T
 ---
 
 > **版本**: v1.0 | **更新日期**: 2026-06-11
+
+---
+
+## Superpowers-ZH 中文增强版
+
+本项目已安装 superpowers-zh 技能框架（24 个 skills）。
+
+### 核心规则
+
+1. **收到任务时，先检查是否有匹配的 skill** — 哪怕只有 1% 的可能性也要检查
+2. **设计先于编码** — 收到功能需求时，先用 brainstorming skill 做需求分析
+3. **测试先于实现** — 写代码前先写测试（TDD）
+4. **验证先于完成** — 声称完成前必须运行验证命令
+
+### 可用 Skills
+
+| Skill | 用途 |
+|-------|------|
+| brainstorming | 需求分析→设计规格，不写代码先想清楚 |
+| using-superpowers | 元技能：确保每次对话前检查并调用匹配的 skills |
+| writing-plans | 把规格拆成可执行的实施步骤 |
+| executing-plans | 按计划逐步实施，每步验证 |
+| test-driven-development | 严格 TDD：先写测试，再写代码 |
+| systematic-debugging | 四阶段调试法：定位→分析→假设→修复 |
+| requesting-code-review | 派遣审查 agent 检查代码质量 |
+| receiving-code-review | 技术严谨地处理审查反馈 |
+| verification-before-completion | 证据先行：声称完成前必须跑验证 |
+| dispatching-parallel-agents | 多任务并发执行 |
+| subagent-driven-development | 每个任务一个 agent，两轮审查 |
+| using-git-worktrees | 隔离式特性开发 |
+| finishing-a-development-branch | 合并/PR/保留/丢弃四选一 |
+| writing-skills | 创建新 skill 的方法论 |
+| chinese-code-review | 国内团队文化代码审查 |
+| chinese-commit-conventions | 中文 Git 提交规范 |
+| chinese-documentation | 中文技术文档写作规范 |
+| chinese-git-workflow | Gitee/Coding/极狐 GitLab 工作流 |
+| mcp-builder | 构建生产级 MCP 服务器 |
+| workflow-runner | 多角色 YAML 工作流编排 |
+| browser-use | 浏览器自动化 |
+| cloud | 云端服务交互 |
+| remote-browser | 远程浏览器控制 |
+
+### 如何使用
+
+当任务匹配某个 skill 时，使用 `Skill` 工具加载对应 skill 并严格遵循其流程。**绝不要用 Read 工具读取 SKILL.md 文件。**
+
+如果你认为哪怕只有 1% 的可能性某个 skill 适用于你正在做的事情，你必须调用该 skill 检查。

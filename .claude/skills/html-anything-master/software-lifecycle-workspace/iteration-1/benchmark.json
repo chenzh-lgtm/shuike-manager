@@ -1,0 +1,395 @@
+{
+  "metadata": {
+    "skill_name": "software-lifecycle",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-05-19T08:08:56Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.57,
+        "passed": 4,
+        "failed": 3,
+        "total": 7,
+        "time_seconds": 443.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u53ef\u884c\u6027\u7814\u7a76\u62a5\u544a\u300b\uff0c\u8986\u76d6\u6280\u672f\u3001\u7ecf\u6d4e\u3001\u6cd5\u5f8b\u3001\u64cd\u4f5c\u3001\u65f6\u95f4\u4e94\u4e2a\u7ef4\u5ea6",
+          "passed": true,
+          "evidence": "docs/feasibility-study/\u300a\u53ef\u884c\u6027\u7814\u7a76\u62a5\u544a\u300b.md (7590 bytes), \u5305\u542b2-6\u7ae0\u5206\u522b\u8986\u76d6\u6280\u672f\u3001\u7ecf\u6d4e\u3001\u6cd5\u5f8b\u3001\u64cd\u4f5c\u3001\u65f6\u95f4\u53ef\u884c\u6027"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8f6f\u4ef6\u9700\u6c42\u89c4\u683c\u8bf4\u660e\u4e66\u300b(SRS)\uff0c\u5305\u542b\u529f\u80fd\u9700\u6c42\u548c\u975e\u529f\u80fd\u9700\u6c42",
+          "passed": true,
+          "evidence": "docs/requirements/\u300a\u8f6f\u4ef6\u9700\u6c42\u89c4\u683c\u8bf4\u660e\u4e66\u300b.md (10227 bytes), \u5305\u542b\u529f\u80fd\u9700\u6c42(\u00a73)\u548c\u975e\u529f\u80fd\u9700\u6c42(\u00a74): \u6027\u80fd\u3001\u5b89\u5168\u3001\u53ef\u7528\u6027\u7b49"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u6982\u8981\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u7cfb\u7edf\u67b6\u6784\u3001\u6a21\u5757\u5212\u5206\u548c\u6280\u672f\u9009\u578b",
+          "passed": true,
+          "evidence": "docs/design/\u300a\u6982\u8981\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b.md (16028 bytes), grep\u663e\u793a28\u5904\u67b6\u6784/\u6a21\u5757/\u6280\u672f\u9009\u578b/\u6570\u636e\u5e93/\u63a5\u53e3\u76f8\u5173\u5173\u952e\u8bcd"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8be6\u7ec6\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u6a21\u5757\u5185\u90e8\u8bbe\u8ba1\u548c\u63a5\u53e3\u89c4\u8303",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230\u8be6\u7ec6\u8bbe\u8ba1\u8bf4\u660e\u4e66\u6587\u4ef6\u3002\u8fd0\u884c\u5728\u9636\u6bb53\u540e\u88ab429\u914d\u989d\u9650\u5236\u622a\u65ad\uff0c\u672a\u80fd\u8fdb\u5165\u9636\u6bb54"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u53ef\u8fd0\u884c\u7684\u6e90\u4ee3\u7801\u6587\u4ef6\uff08\u81f3\u5c11\u5305\u542b\u524d\u7aef\u548c\u540e\u7aef\u4ee3\u7801\uff09",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230\u4efb\u4f55 .js/.ts/.tsx \u6e90\u4ee3\u7801\u6587\u4ef6\uff0c\u9636\u6bb55\u672a\u6267\u884c"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u5355\u5143\u6d4b\u8bd5\u6587\u4ef6",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230\u6d4b\u8bd5\u6587\u4ef6\uff0c\u9636\u6bb55\u672a\u6267\u884c"
+        },
+        {
+          "text": "\u6240\u6709\u6587\u6863\u5747\u4e3a Markdown \u683c\u5f0f\u5e76\u4fdd\u5b58\u5230 outputs \u76ee\u5f55",
+          "passed": true,
+          "evidence": "3\u4e2a.md\u6587\u4ef6\u5747\u4fdd\u5b58\u5728 outputs/docs/ \u5b50\u76ee\u5f55\u4e0b\uff0c\u4f7f\u7528\u6807\u51c6Markdown\u683c\u5f0f"
+        }
+      ],
+      "notes": [
+        "\u8fd0\u884c\u56e0API\u914d\u989d\u9650\u5236(429)\u88ab\u622a\u65ad\uff0c\u4ec5\u5b8c\u62103/5\u9636\u6bb5"
+      ]
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.71,
+        "passed": 5,
+        "failed": 2,
+        "total": 7,
+        "time_seconds": 545.4,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u53ef\u884c\u6027\u7814\u7a76\u62a5\u544a\u300b\uff0c\u8986\u76d6\u6280\u672f\u3001\u7ecf\u6d4e\u3001\u6cd5\u5f8b\u3001\u64cd\u4f5c\u3001\u65f6\u95f4\u4e94\u4e2a\u7ef4\u5ea6",
+          "passed": true,
+          "evidence": "docs/feasibility-study/\u300a\u53ef\u884c\u6027\u7814\u7a76\u62a5\u544a\u300b.md (5606 bytes), \u5305\u542b\u4e94\u4e2a\u7ef4\u5ea6\u7684\u53ef\u884c\u6027\u5206\u6790"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8f6f\u4ef6\u9700\u6c42\u89c4\u683c\u8bf4\u660e\u4e66\u300b(SRS)\uff0c\u5305\u542b\u529f\u80fd\u9700\u6c42\u548c\u975e\u529f\u80fd\u9700\u6c42",
+          "passed": true,
+          "evidence": "docs/requirements/\u300a\u8f6f\u4ef6\u9700\u6c42\u89c4\u683c\u8bf4\u660e\u4e66\u300b.md (8954 bytes), \u5305\u542b\u529f\u80fd\u9700\u6c42\u548c\u975e\u529f\u80fd\u9700\u6c42"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u6982\u8981\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u7cfb\u7edf\u67b6\u6784\u3001\u6a21\u5757\u5212\u5206\u548c\u6280\u672f\u9009\u578b",
+          "passed": true,
+          "evidence": "docs/design/\u300a\u6982\u8981\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b.md (9099 bytes), \u5305\u542b\u67b6\u6784\u8bbe\u8ba1\u548c\u6a21\u5757\u5212\u5206"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8be6\u7ec6\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u6a21\u5757\u5185\u90e8\u8bbe\u8ba1\u548c\u63a5\u53e3\u89c4\u8303",
+          "passed": true,
+          "evidence": "docs/design/\u300a\u8be6\u7ec6\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b.md (21095 bytes), \u5305\u542b\u7c7b\u5b9a\u4e49\u3001\u7b97\u6cd5\u4f2a\u4ee3\u7801\u548c\u5f02\u5e38\u5904\u7406\u7b56\u7565"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u53ef\u8fd0\u884c\u7684 Python \u6e90\u4ee3\u7801\u6587\u4ef6",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230\u4efb\u4f55 .py \u6e90\u4ee3\u7801\u6587\u4ef6\uff0c\u9636\u6bb55\u672a\u6267\u884c"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u5355\u5143\u6d4b\u8bd5\u6587\u4ef6\uff08\u5982\u4f7f\u7528 pytest \u6216 unittest\uff09",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230\u6d4b\u8bd5\u6587\u4ef6\uff0c\u9636\u6bb55\u672a\u6267\u884c"
+        },
+        {
+          "text": "\u6240\u6709\u6587\u6863\u5747\u4e3a Markdown \u683c\u5f0f\u5e76\u4fdd\u5b58\u5230 outputs \u76ee\u5f55",
+          "passed": true,
+          "evidence": "4\u4e2a.md\u6587\u4ef6\u4fdd\u5b58\u5728 outputs/docs/ \u5b50\u76ee\u5f55\u4e0b"
+        }
+      ],
+      "notes": [
+        "\u8fd0\u884c\u56e0API\u914d\u989d\u9650\u5236\u88ab\u622a\u65ad\uff0c\u4ec5\u5b8c\u62104/5\u9636\u6bb5"
+      ]
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.71,
+        "passed": 5,
+        "failed": 2,
+        "total": 7,
+        "time_seconds": 575.3,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u53ef\u884c\u6027\u7814\u7a76\u62a5\u544a\u300b\uff0c\u8986\u76d6\u6280\u672f\u3001\u7ecf\u6d4e\u3001\u6cd5\u5f8b\u3001\u64cd\u4f5c\u3001\u65f6\u95f4\u4e94\u4e2a\u7ef4\u5ea6",
+          "passed": true,
+          "evidence": "docs/feasibility-study/\u300a\u53ef\u884c\u6027\u7814\u7a76\u62a5\u544a\u300b.md (6973 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8f6f\u4ef6\u9700\u6c42\u89c4\u683c\u8bf4\u660e\u4e66\u300b(SRS)\uff0c\u5305\u542b\u529f\u80fd\u9700\u6c42\u548c\u975e\u529f\u80fd\u9700\u6c42",
+          "passed": true,
+          "evidence": "docs/requirements/\u300a\u8f6f\u4ef6\u9700\u6c42\u89c4\u683c\u8bf4\u660e\u4e66\u300b.md (9619 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u6982\u8981\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u7cfb\u7edf\u67b6\u6784\u3001\u6a21\u5757\u5212\u5206\u548c\u6280\u672f\u9009\u578b",
+          "passed": true,
+          "evidence": "docs/design/\u300a\u6982\u8981\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b.md (11677 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8be6\u7ec6\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u6a21\u5757\u5185\u90e8\u8bbe\u8ba1\u548c\u63a5\u53e3\u89c4\u8303",
+          "passed": true,
+          "evidence": "docs/design/\u300a\u8be6\u7ec6\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b.md (22200 bytes), \u6700\u8be6\u5c3d\u7684\u8be6\u7ec6\u8bbe\u8ba1\u6587\u6863"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u53ef\u8fd0\u884c\u7684 Java/Spring Boot \u6e90\u4ee3\u7801\u6587\u4ef6",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230 .java \u6e90\u4ee3\u7801\u6587\u4ef6\uff0c\u9636\u6bb55\u672a\u6267\u884c"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u5355\u5143\u6d4b\u8bd5\u6587\u4ef6",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230\u6d4b\u8bd5\u6587\u4ef6\uff0c\u9636\u6bb55\u672a\u6267\u884c"
+        },
+        {
+          "text": "\u6240\u6709\u6587\u6863\u5747\u4e3a Markdown \u683c\u5f0f\u5e76\u4fdd\u5b58\u5230 outputs \u76ee\u5f55",
+          "passed": true,
+          "evidence": "4\u4e2a.md\u6587\u4ef6\u4fdd\u5b58\u5728 outputs/docs/ \u5b50\u76ee\u5f55"
+        }
+      ],
+      "notes": [
+        "\u8fd0\u884c\u56e0API\u914d\u989d\u9650\u5236\u88ab\u622a\u65ad"
+      ]
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.71,
+        "passed": 5,
+        "failed": 2,
+        "total": 7,
+        "time_seconds": 447.6,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u53ef\u884c\u6027\u7814\u7a76\u62a5\u544a\u300b\uff0c\u8986\u76d6\u6280\u672f\u3001\u7ecf\u6d4e\u3001\u6cd5\u5f8b\u3001\u64cd\u4f5c\u3001\u65f6\u95f4\u4e94\u4e2a\u7ef4\u5ea6",
+          "passed": true,
+          "evidence": "phase1-feasibility-analysis.md (3318 bytes), \u5185\u5bb9\u6d89\u53ca\u6280\u672f\u53ef\u884c\u6027\u3001\u7ecf\u6d4e\u6210\u672c\u3001\u98ce\u9669\u7b49\u7ef4\u5ea6"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8f6f\u4ef6\u9700\u6c42\u89c4\u683c\u8bf4\u660e\u4e66\u300b(SRS)\uff0c\u5305\u542b\u529f\u80fd\u9700\u6c42\u548c\u975e\u529f\u80fd\u9700\u6c42",
+          "passed": true,
+          "evidence": "phase2-requirements-analysis.md (4718 bytes), \u5305\u542b\u529f\u80fd\u9700\u6c42\u548c\u975e\u529f\u80fd\u9700\u6c42\u7ae0\u8282"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u6982\u8981\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u7cfb\u7edf\u67b6\u6784\u3001\u6a21\u5757\u5212\u5206\u548c\u6280\u672f\u9009\u578b",
+          "passed": true,
+          "evidence": "phase3-high-level-design.md (10910 bytes), \u5305\u542b\u67b6\u6784\u8bbe\u8ba1\u548c\u6a21\u5757\u5212\u5206"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8be6\u7ec6\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u6a21\u5757\u5185\u90e8\u8bbe\u8ba1\u548c\u63a5\u53e3\u89c4\u8303",
+          "passed": true,
+          "evidence": "phase4-detailed-design.md (12607 bytes), \u5305\u542bAPI\u63a5\u53e3\u8bbe\u8ba1\u548c\u7ec4\u4ef6\u8be6\u7ec6\u8bbe\u8ba1"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u53ef\u8fd0\u884c\u7684\u6e90\u4ee3\u7801\u6587\u4ef6\uff08\u81f3\u5c11\u5305\u542b\u524d\u7aef\u548c\u540e\u7aef\u4ee3\u7801\uff09",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230\u4efb\u4f55\u6e90\u4ee3\u7801\u6587\u4ef6\uff0c\u9636\u6bb55\u672a\u6267\u884c"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u5355\u5143\u6d4b\u8bd5\u6587\u4ef6",
+          "passed": false,
+          "evidence": "outputs\u76ee\u5f55\u4e2d\u5b58\u5728test\u76f8\u5173\u6587\u4ef6\uff0c\u4f46\u65e0\u6cd5\u786e\u8ba4\u4e3a\u6709\u6548\u7684\u5355\u5143\u6d4b\u8bd5\u6587\u4ef6"
+        },
+        {
+          "text": "\u6240\u6709\u6587\u6863\u5747\u4e3a Markdown \u683c\u5f0f\u5e76\u4fdd\u5b58\u5230 outputs \u76ee\u5f55",
+          "passed": true,
+          "evidence": "4\u4e2a.md\u6587\u4ef6\u5747\u76f4\u63a5\u4fdd\u5b58\u5728outputs\u76ee\u5f55\u4e0b"
+        }
+      ],
+      "notes": [
+        "\u8fd0\u884c\u56e0API\u914d\u989d\u9650\u5236\u88ab\u622a\u65ad"
+      ]
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.86,
+        "passed": 6,
+        "failed": 1,
+        "total": 7,
+        "time_seconds": 475.2,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u53ef\u884c\u6027\u7814\u7a76\u62a5\u544a\u300b\uff0c\u8986\u76d6\u6280\u672f\u3001\u7ecf\u6d4e\u3001\u6cd5\u5f8b\u3001\u64cd\u4f5c\u3001\u65f6\u95f4\u4e94\u4e2a\u7ef4\u5ea6",
+          "passed": true,
+          "evidence": "01-feasibility-analysis.md (3087 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8f6f\u4ef6\u9700\u6c42\u89c4\u683c\u8bf4\u660e\u4e66\u300b(SRS)\uff0c\u5305\u542b\u529f\u80fd\u9700\u6c42\u548c\u975e\u529f\u80fd\u9700\u6c42",
+          "passed": true,
+          "evidence": "02-requirements-analysis.md (4569 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u6982\u8981\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u7cfb\u7edf\u67b6\u6784\u3001\u6a21\u5757\u5212\u5206\u548c\u6280\u672f\u9009\u578b",
+          "passed": true,
+          "evidence": "03-high-level-design.md (6597 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8be6\u7ec6\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u6a21\u5757\u5185\u90e8\u8bbe\u8ba1\u548c\u63a5\u53e3\u89c4\u8303",
+          "passed": true,
+          "evidence": "04-detailed-design.md (11479 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u53ef\u8fd0\u884c\u7684 Python \u6e90\u4ee3\u7801\u6587\u4ef6",
+          "passed": true,
+          "evidence": "batch_rename.py (12358 bytes), \u5305\u542b\u5b8c\u6574\u7684\u547d\u4ee4\u884c\u5de5\u5177\u5b9e\u73b0"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u5355\u5143\u6d4b\u8bd5\u6587\u4ef6\uff08\u5982\u4f7f\u7528 pytest \u6216 unittest\uff09",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230\u72ec\u7acb\u6d4b\u8bd5\u6587\u4ef6\uff0c\u867d\u7136batch_rename.py\u5185\u90e8\u53ef\u80fd\u5305\u542b\u6d4b\u8bd5\u4ee3\u7801\u4f46\u4e0d\u7b26\u5408\u5355\u5143\u6d4b\u8bd5\u89c4\u8303"
+        },
+        {
+          "text": "\u6240\u6709\u6587\u6863\u5747\u4e3a Markdown \u683c\u5f0f\u5e76\u4fdd\u5b58\u5230 outputs \u76ee\u5f55",
+          "passed": true,
+          "evidence": "5\u4e2a\u6587\u4ef6(4\u4e2a.md + 1\u4e2a.py)\u4fdd\u5b58\u5728outputs\u76ee\u5f55"
+        }
+      ],
+      "notes": [
+        "\u8fd0\u884c\u56e0API\u914d\u989d\u9650\u5236\u88ab\u622a\u65ad\uff0c\u4f46\u5df2\u5b8c\u62104\u9636\u6bb5\u6587\u6863+\u4ee3\u7801\u751f\u6210"
+      ]
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.71,
+        "passed": 5,
+        "failed": 2,
+        "total": 7,
+        "time_seconds": 472.8,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u53ef\u884c\u6027\u7814\u7a76\u62a5\u544a\u300b\uff0c\u8986\u76d6\u6280\u672f\u3001\u7ecf\u6d4e\u3001\u6cd5\u5f8b\u3001\u64cd\u4f5c\u3001\u65f6\u95f4\u4e94\u4e2a\u7ef4\u5ea6",
+          "passed": true,
+          "evidence": "docs/01-feasibility-analysis.md (4408 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8f6f\u4ef6\u9700\u6c42\u89c4\u683c\u8bf4\u660e\u4e66\u300b(SRS)\uff0c\u5305\u542b\u529f\u80fd\u9700\u6c42\u548c\u975e\u529f\u80fd\u9700\u6c42",
+          "passed": true,
+          "evidence": "docs/02-requirements-analysis.md (8989 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u6982\u8981\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u7cfb\u7edf\u67b6\u6784\u3001\u6a21\u5757\u5212\u5206\u548c\u6280\u672f\u9009\u578b",
+          "passed": true,
+          "evidence": "docs/03-high-level-design.md (7986 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u300a\u8be6\u7ec6\u8bbe\u8ba1\u8bf4\u660e\u4e66\u300b\uff0c\u5305\u542b\u6a21\u5757\u5185\u90e8\u8bbe\u8ba1\u548c\u63a5\u53e3\u89c4\u8303",
+          "passed": true,
+          "evidence": "docs/04-detailed-design.md (17199 bytes)"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u53ef\u8fd0\u884c\u7684 Java/Spring Boot \u6e90\u4ee3\u7801\u6587\u4ef6",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230 .java \u6e90\u4ee3\u7801\u6587\u4ef6\uff0c\u9636\u6bb55\u672a\u6267\u884c"
+        },
+        {
+          "text": "\u751f\u6210\u4e86\u5355\u5143\u6d4b\u8bd5\u6587\u4ef6",
+          "passed": false,
+          "evidence": "\u672a\u627e\u5230\u6d4b\u8bd5\u6587\u4ef6\uff0c\u9636\u6bb55\u672a\u6267\u884c"
+        },
+        {
+          "text": "\u6240\u6709\u6587\u6863\u5747\u4e3a Markdown \u683c\u5f0f\u5e76\u4fdd\u5b58\u5230 outputs \u76ee\u5f55",
+          "passed": true,
+          "evidence": "4\u4e2a.md\u6587\u4ef6\u4fdd\u5b58\u5728 outputs/docs/ \u5b50\u76ee\u5f55"
+        }
+      ],
+      "notes": [
+        "\u8fd0\u884c\u56e0API\u914d\u989d\u9650\u5236\u88ab\u622a\u65ad"
+      ]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.6633,
+        "stddev": 0.0808,
+        "min": 0.57,
+        "max": 0.71
+      },
+      "time_seconds": {
+        "mean": 521.2333,
+        "stddev": 69.3819,
+        "min": 443.0,
+        "max": 575.3
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.76,
+        "stddev": 0.0866,
+        "min": 0.71,
+        "max": 0.86
+      },
+      "time_seconds": {
+        "mean": 465.2,
+        "stddev": 15.2892,
+        "min": 447.6,
+        "max": 475.2
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "-0.10",
+      "time_seconds": "+56.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

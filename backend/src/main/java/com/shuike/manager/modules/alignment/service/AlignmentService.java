@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shuike.manager.common.exception.BusinessException;
 import com.shuike.manager.common.exception.ErrorCode;
-import com.shuike.manager.common.security.SecurityUtils;
 import com.shuike.manager.modules.ai.client.VolcanoEngineClient;
 import com.shuike.manager.modules.alignment.entity.AlignmentReport;
 import com.shuike.manager.modules.alignment.mapper.AlignmentReportMapper;
@@ -18,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -50,18 +48,20 @@ public class AlignmentService {
 
     /**
      * 异步触发分析（不阻塞HTTP响应）
+     * @param tcpId 人培方案ID
+     * @param initiatorId 发起用户ID（从Controller传入，避免异步线程丢失SecurityContext）
      */
     @Async("aiEvaluationExecutor")
-    public void analyzeAsync(Long tcpId) {
+    public void analyzeAsync(Long tcpId, Long initiatorId) {
         try {
-            analyze(tcpId);
+            analyze(tcpId, initiatorId);
         } catch (Exception e) {
-            log.error("[对齐分析] 异步执行失败: tcpId={}, err={}", tcpId, e.getMessage());
+            log.error("[对齐分析] 异步执行失败: tcpId={}, err={}", tcpId, e.getMessage(), e);
         }
     }
 
     @Transactional
-    public AlignmentReport analyze(Long tcpId) {
+    public AlignmentReport analyze(Long tcpId, Long initiatorId) {
         TalentCultivationPlan tcp = tcpMapper.selectById(tcpId);
         if (tcp == null) throw new BusinessException(ErrorCode.NOT_FOUND, "人培方案不存在");
 
@@ -107,7 +107,7 @@ public class AlignmentService {
             report.setTcpId(tcpId);
             report.setMajorName(tcp.getMajorName());
             report.setCollegeId(tcp.getCollegeId());
-            report.setInitiatorId(SecurityUtils.getCurrentUserId());
+            report.setInitiatorId(initiatorId);
             report.setModelVersion("doubao-pro-32k");
 
             // 产业需求关键词
@@ -132,8 +132,8 @@ public class AlignmentService {
             log.info("[对齐分析] 报告生成成功 id={} coverScore={}", report.getId(), report.getCoverageScore());
             return report;
         } catch (Exception e) {
-            log.error("[对齐分析] JSON解析失败: {}", e.getMessage());
-            throw new BusinessException(4003, "AI返回格式解析失败，请重试");
+            log.error("[对齐分析] 报告保存失败: {}", e.getMessage(), e);
+            throw new BusinessException(4003, "报告保存失败: " + e.getMessage());
         }
     }
 

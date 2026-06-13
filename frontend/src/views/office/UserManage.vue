@@ -13,7 +13,7 @@
       </template>
 
       <el-form :inline="true">
-        <el-form-item label="学院"><el-select v-model="query.collegeId" clearable @change="fetchData"><el-option v-for="c in colleges" :key="c.id" :label="c.name" :value="c.id" /></el-select></el-form-item>
+        <el-form-item label="学院"><el-select v-model="query.collegeId" clearable @change="fetchData" style="width:180px"><el-option v-for="c in colleges" :key="c.id" :label="c.name" :value="c.id" /></el-select></el-form-item>
         <el-form-item><el-input v-model="query.keyword" placeholder="用户名/姓名" clearable @change="fetchData" /></el-form-item>
       </el-form>
 

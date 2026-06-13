@@ -1,0 +1,19 @@
+{
+  "expectations": [
+    {"text": "生成了《可行性研究报告》，覆盖技术、经济、法律、操作、时间五个维度", "passed": true, "evidence": "docs/feasibility-study/《可行性研究报告》.md (7590 bytes), 包含2-6章分别覆盖技术、经济、法律、操作、时间可行性"},
+    {"text": "生成了《软件需求规格说明书》(SRS)，包含功能需求和非功能需求", "passed": true, "evidence": "docs/requirements/《软件需求规格说明书》.md (10227 bytes), 包含功能需求(§3)和非功能需求(§4): 性能、安全、可用性等"},
+    {"text": "生成了《概要设计说明书》，包含系统架构、模块划分和技术选型", "passed": true, "evidence": "docs/design/《概要设计说明书》.md (16028 bytes), grep显示28处架构/模块/技术选型/数据库/接口相关关键词"},
+    {"text": "生成了《详细设计说明书》，包含模块内部设计和接口规范", "passed": false, "evidence": "未找到详细设计说明书文件。运行在阶段3后被429配额限制截断，未能进入阶段4"},
+    {"text": "生成了可运行的源代码文件（至少包含前端和后端代码）", "passed": false, "evidence": "未找到任何 .js/.ts/.tsx 源代码文件，阶段5未执行"},
+    {"text": "生成了单元测试文件", "passed": false, "evidence": "未找到测试文件，阶段5未执行"},
+    {"text": "所有文档均为 Markdown 格式并保存到 outputs 目录", "passed": true, "evidence": "3个.md文件均保存在 outputs/docs/ 子目录下，使用标准Markdown格式"}
+  ],
+  "summary": {"passed": 4, "failed": 3, "total": 7, "pass_rate": 0.57},
+  "claims": [
+    {"claim": "文档命名使用规范中文模板名", "type": "quality", "verified": true, "evidence": "文件名如《可行性研究报告》.md，符合skill要求的命名规范"},
+    {"claim": "文档按子目录组织", "type": "factual", "verified": true, "evidence": "docs/feasibility-study/, docs/requirements/, docs/design/ 三级目录结构"}
+  ],
+  "timing": {"executor_duration_seconds": 443.0},
+  "user_notes_summary": {"uncertainties": ["运行因API配额限制(429)被截断，仅完成3/5阶段"], "needs_review": [], "workarounds": []},
+  "eval_feedback": {"suggestions": [], "overall": "配额截断导致阶段4、5无法评估。建议增加配额后重新运行完整测试。"}
+}
