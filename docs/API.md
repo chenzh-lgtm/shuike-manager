@@ -1,6 +1,6 @@
 # 水课管理系统 — API 接口文档
 
-> **版本**: v1.0 | **基础URL**: `http://47.97.68.38/api` | **协议**: REST JSON | **认证**: JWT Bearer Token
+> **版本**: v1.0 | **基础URL**: `<ECS_IP>/api` | **协议**: REST JSON | **认证**: JWT Bearer Token
 
 ---
 

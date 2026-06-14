@@ -29,11 +29,11 @@ Git Push → CI 编译+测试 → CD 构建镜像
 
 | Secret | 值 | 说明 |
 |--------|-----|------|
-| `ACR_USERNAME` | `你啊空腹阿狸` | 阿里云 ACR 用户名 |
-| `ACR_PASSWORD` | `118023203czH++` | 阿里云 ACR 密码 |
-| `ECS_HOST` | `47.97.68.38` | ECS 服务器 IP |
+| `ACR_USERNAME` | `<阿里云ACR用户名>` | 阿里云 ACR 用户名 |
+| `ACR_PASSWORD` | `<阿里云ACR密码>` | 阿里云 ACR 密码 |
+| `ECS_HOST` | `<ECS服务器IP>` | ECS 服务器 IP |
 | `ECS_USERNAME` | `root` | ECS SSH 用户名 |
-| `ECS_PASSWORD` | `118023203czH++` | ECS SSH 密码 |
+| `ECS_PASSWORD` | `<ECS_SSH密码>` | ECS SSH 密码 |
 
 ### 配置步骤
 
@@ -163,8 +163,8 @@ grep "image:" /opt/shuike/docker-compose.yml
 docker exec shuike-minio mc mb local/shuike-manager 2>/dev/null || echo "已存在"
 
 # 4. 测试手动拉取镜像
-docker login crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com
-docker pull crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-backend:latest
+docker login <ACR_REGISTRY>
+docker pull <ACR_REGISTRY>/shuike2026/teacher-file-manager-backend:latest
 ```
 
 ---

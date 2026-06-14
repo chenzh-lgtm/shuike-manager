@@ -37,8 +37,8 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Hom
 cd backend && mvn clean package -DskipTests -q
 
 # 2. 上传 JAR + 替换容器（1分钟）
-sshpass -p '118023203czH++' scp target/teacher-file-manager-1.0.0.jar root@47.97.68.38:/opt/shuike/backend/
-sshpass -p '118023203czH++' ssh root@47.97.68.38 '
+scp target/teacher-file-manager-1.0.0.jar root@<ECS_IP>:/opt/shuike/backend/
+ssh root@<ECS_IP> '
   docker cp /opt/shuike/backend/teacher-file-manager-1.0.0.jar shuike-backend:/app/app.jar
   docker restart shuike-backend
   sleep 15 && docker logs shuike-backend --tail 10
@@ -57,9 +57,9 @@ sshpass -p '118023203czH++' ssh root@47.97.68.38 '
 ```bash
 cd frontend
 docker build --platform linux/amd64 -t shuike-frontend:1.0 .
-docker tag shuike-frontend:1.0 crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-frontend:1.0
-docker push crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-frontend:1.0
-sshpass -p '118023203czH++' ssh root@47.97.68.38 'cd /opt/shuike && docker compose pull frontend && docker compose up -d --no-deps frontend'
+docker tag shuike-frontend:1.0 <ACR_REGISTRY>/shuike2026/teacher-file-manager-frontend:1.0
+docker push <ACR_REGISTRY>/shuike2026/teacher-file-manager-frontend:1.0
+ssh root@<ECS_IP> 'cd /opt/shuike && docker compose pull frontend && docker compose up -d --no-deps frontend'
 ```
 
 ## 本地 Docker 同步
@@ -128,7 +128,7 @@ public void analyzeAsync(Long tcpId, Long initiatorId) {  // ✅ 使用传入的
 ## ECS 运维速查
 
 ```
-SSH: ssh root@47.97.68.38  (密码: 118023203czH++)
+SSH: ssh root@<ECS_IP>
 项目路径: /opt/shuike/
 
 docker logs shuike-backend --tail 100 | grep -i "对齐\|ERROR"
@@ -138,7 +138,7 @@ docker restart shuike-backend
 docker compose up -d --no-deps frontend  # 只重建前端
 ```
 
-ACR: `docker login --username=你啊空腹阿狸 crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com`
+ACR: `docker login --username=<ACR_USERNAME> <ACR_REGISTRY>`
 
 ## 测试
 

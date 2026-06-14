@@ -512,10 +512,10 @@ mvn test -Dtest=ClosedLoopIntegrationTest
 
 | 配置项 | 值 |
 |--------|-----|
-| 生产地址 | http://47.97.68.38 |
-| MinIO 控制台 | http://47.97.68.38:9001 |
-| 镜像仓库 | `crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/` |
-| SSH | `ssh root@47.97.68.38` |
+| 生产地址 | `<ECS_IP>` |
+| MinIO 控制台 | `<ECS_IP>:9001` |
+| 镜像仓库 | `<ACR_REGISTRY>/shuike2026/` |
+| SSH | `ssh root@<ECS_IP>` |
 | 部署路径 | `/opt/shuike/` |
 
 ---

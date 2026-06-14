@@ -18,9 +18,9 @@ on:
       - 'frontend/nginx.conf'
 
 env:
-  ACR_REGISTRY: crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com
-  BACKEND_IMAGE: crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-backend
-  FRONTEND_IMAGE: crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-frontend
+  ACR_REGISTRY: <ACR_REGISTRY>    # 替换为你的阿里云ACR地址
+  BACKEND_IMAGE: <ACR_REGISTRY>/shuike2026/teacher-file-manager-backend
+  FRONTEND_IMAGE: <ACR_REGISTRY>/shuike2026/teacher-file-manager-frontend
 
 jobs:
 
@@ -76,7 +76,7 @@ jobs:
       - name: 登录阿里云 ACR
         uses: docker/login-action@v3
         with:
-          registry: crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com
+          registry: <ACR_REGISTRY>
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
@@ -117,7 +117,7 @@ jobs:
           password: ${{ secrets.ECS_PASSWORD }}
           script: |
             set -e
-            REGISTRY=crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com
+            REGISTRY=${{ env.ACR_REGISTRY }}
 
             echo "=== 登录 ACR ==="
             echo "${{ secrets.ACR_PASSWORD }}" | docker login --username="${{ secrets.ACR_USERNAME }}" --password-stdin $REGISTRY
