@@ -3,230 +3,166 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **项目规则**: 请同时遵守 [.claude/rules/shuike-manager.md](.claude/rules/shuike-manager.md) 中的全部规则。
+**Skills**: 本项目已安装 superpowers-zh 技能框架（25 个 skills 在 `.claude/skills/`），任务匹配时用 `Skill` 工具加载，不要用 Read 读 SKILL.md。
 
 ---
 
-## Project Overview
+## 环境约束（强制）
 
-### 产品定位
+- **macOS 开发，不是 Linux**。ECS 生产环境是 CentOS 7 x86_64。
+- **Java 8**：不能使用 `var`、`List.of()`、模块系统、`te?xt blocks` 等 9+ 特性。
+- **MySQL 5.6 兼容**：生产是原生 MySQL 5.6.26（ECS 宿主机），不能用 `JSON` 列类型、窗口函数、CTE。本地 Docker 是 MySQL 8.0，开发时注意语法降级。
+- **Maven 3.5.2**：插件版本需兼容。
+- 工具链（node/npm/maven/git/java）已全部安装，**不要重复安装**。
 
-**水课管理系统 (ShuiKe Manager)** — 高校教学材料智能化分析与审核平台。
+## 双数据库版本（关键）
 
-### 核心业务流程
+| 环境 | MySQL 版本 | Schema 来源 |
+|------|:--:|------|
+| 本地 Docker | 8.0 | `docs/数据库/database.sql`（挂载在 docker-compose.yml） |
+| ECS 生产 | 5.6.26 | **手动维护**，ALTER TABLE 增量更新 |
 
-```
-教师提交教学材料（授课计划/教案/课件/考核方案）
-    → AI 大模型自动四维评审（内容完整性/课程标准匹配度/格式规范性/创新性）
-    → 学院主任审核（通过/驳回）
-    → 教务处终审（通过/驳回）
-    → 教师查看审核反馈 + 通知中心实时推送
-```
+> ECS 数据库不会自动执行建表脚本。任何 schema 变更必须**同时在 ECS 上 `ALTER TABLE`**。
 
-### 系统架构
+已知 ECS 已执行过的补丁：
+- `ALTER TABLE phase_materials ADD COLUMN semester_id BIGINT DEFAULT NULL AFTER course_id`
+- `ALTER TABLE phase_material_files MODIFY material_id BIGINT DEFAULT NULL`
+- `ALTER TABLE alignment_reports ADD COLUMN report_json LONGTEXT DEFAULT NULL AFTER suggestions`
 
-```
-┌─────────────┐     ┌──────────────┐     ┌────────────────┐
-│ Vue 3 前端   │────▶│ Nginx 反向代理 │────▶│ Spring Boot API │
-│ Element Plus │     │ (静态资源+代理) │     │ (REST JSON)    │
-│ ECharts 图表 │     └──────────────┘     └───┬───┬───┬────┘
-└─────────────┘                               │   │   │
-                                   ┌─────────▼┐ ┌▼──┐ ┌▼───┐
-                                   │ MySQL 8  │ │Redis│ │MinIO│
-                                   │ 业务数据  │ │缓存 │ │文件 │
-                                   └──────────┘ └────┘ └─────┘
-                                              │
-                                   ┌──────────▼──────────┐
-                                   │ 火山引擎大模型 API    │
-                                   │ (豆包/DeepSeek)      │
-                                   └─────────────────────┘
-```
-
-### 功能模块
-
-| 模块 | 说明 |
-|------|------|
-| **材料提交与评审** | 教师上传教学材料 → AI 自动评分+生成优化建议 → 主任审核 → 教务处终审 |
-| **AI 智能评审** | 火山引擎 LLM 四维并发评审（内容完整性30% + 课标匹配度30% + 格式规范性20% + 创新性20%） |
-| **Prompt 模板管理** | 4种材料类型×4个评审维度=16个专业模板，教务处可在线编辑，自动版本管理 |
-| **多角色工作台** | 教师/学院主任/教务处/院长 4 角色专属 Dashboard，含 ECharts 统计图表 |
-| **数据隔离** | 主任仅见本院材料，教师仅见个人材料，院长仅见本学院人培方案 |
-| **对齐分析** | 院长发起产业需求对齐分析，LLM 生成 8 章节论文式报告（产业背景/人才需求/课程体系/学习成果/就业前景/差距分析/改进建议/综合评分） |
-| **通知中心** | 全流程通知（材料提交/AI完成/审核结果/终审提醒），铃铛角标 30s 自动刷新 |
-| **材料归档** | 教务处按类型/课程/教师搜索，在线预览 Word/PDF 文件，批量下载 |
-| **用户管理** | CSV 批量导入，学院-角色关联，密码默认规则 |
-| **文件存储** | MinIO 按材料类型分目录存储，删除材料同步清理 MinIO 文件和 AI 评审记录 |
-
-### 技术架构
-
-- **后端**: Spring Boot 2.7.x + Java 8 + MyBatis-Plus 3.5 + MySQL 5.6
-- **前端**: Vue 3.4 + TypeScript + Element Plus 2.7 + Pinia 2.x + ECharts 5.x
-- **认证**: JWT (jjwt 0.11.5) + Spring Security + RBAC（4角色细粒度权限）
-- **AI 集成**: 火山引擎方舟 API，RestTemplate HTTP 调用，异步线程执行，4 维 CompletableFuture 并发
-- **文件存储**: MinIO（S3 兼容），预签名 URL 下载，PDFBox/POI 文档解析
-- **部署**: Docker Compose 5 服务（MySQL/Redis/MinIO/Backend/Frontend）+ 阿里云 ACR + ECS
-
-## Tech Stack
-
-- **Backend**: Spring Boot 2.7.x + Java 8 + MyBatis-Plus + MySQL 5.6 (production DB)
-- **Frontend**: Vue 3 + TypeScript + Element Plus + Pinia + ECharts
-- **Infrastructure**: Docker Compose (MySQL 8.0 + Redis 7 + MinIO)
-- **AI**: 火山引擎方舟 API (豆包/DeepSeek), HTTP REST with `RestTemplate`
-- **Auth**: JWT (jjwt 0.11.5) + Spring Security + RBAC
-- **File Storage**: MinIO (S3-compatible)
-
-## Build & Run (Local Development)
+## 后端快速部署（日常使用）
 
 ```bash
-# Backend (requires JDK 8, Maven 3.5+, local MySQL)
-cd backend
-mvn spring-boot:run                          # starts on :8080
+# 1. 本地编译（需要正确 JAVA_HOME，30秒）
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home
+cd backend && mvn clean package -DskipTests -q
 
-# Frontend (requires Node 18+)
+# 2. 上传 JAR + 替换容器（1分钟）
+sshpass -p '118023203czH++' scp target/teacher-file-manager-1.0.0.jar root@47.97.68.38:/opt/shuike/backend/
+sshpass -p '118023203czH++' ssh root@47.97.68.38 '
+  docker cp /opt/shuike/backend/teacher-file-manager-1.0.0.jar shuike-backend:/app/app.jar
+  docker restart shuike-backend
+  sleep 15 && docker logs shuike-backend --tail 10
+'
+
+# 3.（可选）若需重建完整镜像
+# docker tag shuike-backend:1.0 shuike-backend:1.0-base  # 在 ECS 上做基础镜像快照
+```
+
+> ⚠️ **不要用 `docker build --platform linux/amd64` 在 Mac 上构建后端**（QEMU 模拟 Java 编译需 3h+）。本地 mvn 编译后直接替换容器 JAR 即可。
+
+## 前端部署
+
+前端 Node.js 编译不涉及 JVM 模拟，本地 docker build 始终可用：
+
+```bash
 cd frontend
-npm install && npm run dev                   # starts on :3000, proxies /api → :8080
+docker build --platform linux/amd64 -t shuike-frontend:1.0 .
+docker tag shuike-frontend:1.0 crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-frontend:1.0
+docker push crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-frontend:1.0
+sshpass -p '118023203czH++' ssh root@47.97.68.38 'cd /opt/shuike && docker compose pull frontend && docker compose up -d --no-deps frontend'
 ```
 
-**All-in-one Docker** (zero local dependency):
+## 本地 Docker 同步
+
+修改代码后本地 Docker 也需更新（否则过时）：
+
 ```bash
-docker compose up -d --build                 # localhost:80 — frontend, :8080 — backend
+docker compose up -d --no-deps --build backend frontend
 ```
 
-## Docker Compose
+如果 Dashboard 图表全空，检查数据库是否初始化：`docker-compose.yml` 中挂载的是 `./docs/数据库/database.sql`（已修复，旧版引用的 `./docs/database.sql` 在文档重组后失效）。
 
-`docker-compose.yml` defines 5 services: `mysql` (3307:3306), `redis` (6379), `minio` (9000+9001), `backend` (8080), `frontend` (80). Backend uses `SPRING_DATASOURCE_URL` env var to override DB connection in container. MinIO bucket `shuike-manager` must be created manually after first startup:
-```bash
-docker exec shuike-minio mc mb local/shuike-manager
+## 架构要点
+
+### 核心两个版本模块共存
+
+- **新版（主用）**：`phasematerial/` (材料) + `aievaluation/` (AI评审) + `manualreview/` (两级审核)
+- **旧版（兼容）**：`teachingplan/` + `review/` — 单级审核，大部分接口仍可用但前端已不再使用
+
+### 审核状态机
+
+```
+AI_EVALUATING → AI_COMPLETED → COLLEGE_APPROVED → OFFICE_APPROVED (终审通过)
+                                     ↘ AI_REJECTED (任意阶段驳回)
 ```
 
-## Tests
+### @Async + SecurityContext 规范
+
+异步方法（`@Async("aiEvaluationExecutor")`）在独立线程执行，**不能调用 `SecurityUtils.getCurrentUserId()`**（返回 null）。正确做法：
+
+```java
+// Controller 层提前取 userId 显式传入
+Long userId = SecurityUtils.getCurrentUserId();
+service.analyzeAsync(tcpId, userId);   // ✅ 显式传参
+
+// Service 层异步方法接收参数
+@Async("aiEvaluationExecutor")
+public void analyzeAsync(Long tcpId, Long initiatorId) {  // ✅ 使用传入的 initiatorId
+```
+
+### 数据隔离模式
+
+- **COLLEGE_REVIEWER**：`PhaseMaterialController.reviewerList()` 中通过 `teacherCollegeCache` 过滤出 `userCollegeId.equals(tcId)` 的记录
+- **DEAN**：人培/课标查询中设置 `collegeId = currentUser.getCollegeId()`
+- **OFFICE**：全局视角，无隔离；API 接收可选 `collegeId` 参数筛选
+
+### API 响应格式
+
+`ApiResponse<T>`: `{code:200, message:"success", data:T, timestamp:123}`
+`PageResult<T>`: `{records:[], total:N, page:N, pageSize:N}`
+
+常见错误码：200=成功, 1001=密码错误, 4001=AI 不可用, 4003=AI 结果解析失败
+
+## 核心模块速查
+
+| 需求 | Controller | Service | 关键点 |
+|------|-----------|---------|------|
+| 教师提交材料 | `PhaseMaterialController.create()` | `PhaseMaterialService` | 创建后自动触发 AI 评审（异步） |
+| 主任/教务处审核 | `ManualReviewController.review()` | `ManualReviewService` | `reviewLevel:COLLEGE/OFFICE` |
+| AI 评审 | `AiEvaluationController.submit()` | `AiEvaluationService` | 4维 CompletableFuture 并发，完成后通知 |
+| 对齐分析 | `AlignmentController.analyze()` | `AlignmentService` | `@Async`，LLM 返回 JSON 解析后入库 |
+| Prompt 模板 | `PromptTemplateController` | `PromptTemplateService` | 在线编辑自动创建新版本 |
+| 文件管理 | `FileController` | — | MinIO 预签名 URL + PDFBox/POI 解析 |
+| Dashboard | `DashboardController.office()` | `DashboardService.getOfficeStats()` | `collegeMaterialAvgScores` 是6/14新增的各学院×材料类型平均分 |
+
+## ECS 运维速查
+
+```
+SSH: ssh root@47.97.68.38  (密码: 118023203czH++)
+项目路径: /opt/shuike/
+
+docker logs shuike-backend --tail 100 | grep -i "对齐\|ERROR"
+docker exec shuike-mysql mysql -uroot -p'shuike@2026' -e "DESCRIBE shuike_manager.alignment_reports"
+docker exec shuike-mysql mysql -uroot -p'shuike@2026' -e "SELECT id,major_name,coverage_score FROM shuike_manager.alignment_reports ORDER BY created_at DESC LIMIT 5"
+docker restart shuike-backend
+docker compose up -d --no-deps frontend  # 只重建前端
+```
+
+ACR: `docker login --username=你啊空腹阿狸 crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com`
+
+## 测试
 
 ```bash
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home
 cd backend
-mvn test -Dtest=ShuiKeIntegrationTest        # 23 API tests
-mvn test -Dtest=ClosedLoopIntegrationTest    # 19 closed-loop E2E tests
-mvn test                                      # all tests
-```
-Tests use `@SpringBootTest` + `@AutoConfigureMockMvc` + `@MockBean(MinioClient.class)`. `RedisConfig` has `@ConditionalOnBean` so tests skip Redis. Tests connect to real local MySQL (`shuike_manager` database).
-
-## Project Structure
-
-```
-backend/src/main/java/com/shuike/manager/
-├── common/config/         # SecurityConfig, MyBatisPlusConfig, WebMvcConfig, AsyncConfig
-├── common/security/       # JwtTokenProvider, JwtAuthenticationFilter, SecurityUtils
-├── common/exception/      # GlobalExceptionHandler, BusinessException, ErrorCode
-├── common/response/       # ApiResponse<T> (code/message/data/timestamp), PageResult<T>
-├── modules/
-│   ├── auth/              # Login + JWT refresh
-│   ├── user/              # CRUD, batch import CSV, template download
-│   ├── teachingplan/      # Legacy teaching plan (mostly deprecated)
-│   ├── phasematerial/     # **CORE**: material CRUD, submit, review-list, archive
-│   ├── review/            # Legacy review (mostly deprecated)
-│   ├── manualreview/      # **CORE**: two-level review (COLLEGE→OFFICE)
-│   ├── aievaluation/      # **CORE**: AI evaluation submit+run+query, Prompt template CRUD
-│   ├── alignment/         # Industry demand alignment analysis (async LLM call)
-│   ├── talentplan/        # Dean's talent cultivation plans (per-college isolation)
-│   ├── coursestandard/    # Dean's course standards (per-college isolation)
-│   ├── file/              # File upload to MinIO + document parsing (PDFBox/POI)
-│   ├── notification/      # Notifications (CRUD + unread count)
-│   └── dashboard/         # Stats for all 4 roles
-│   └── ai/                # VolcanoEngineClient, PromptBuilder, EvaluationResultParser
-frontend/src/
-├── api/                   # Axios instance (interceptor: token + 401 refresh)
-├── views/teacher/         # Dashboard, SubmitMaterial, ReviewProgress, AlignmentReport
-├── views/college/         # Dashboard, MaterialReviewList (AI scoring + file preview)
-├── views/office/          # Dashboard(ECharts), AiReviewManage, UserManage, MaterialArchive
-├── views/dean/            # Dashboard, TalentPlan, CourseStandard, AlignmentReport
-├── views/login/           # LoginPage
-├── stores/                # auth.ts (token/userInfo/roles), app.ts (sidebar)
-├── router/                # 4 role route trees + beforeEach guard
+mvn test                                         # 全部 42 个
+mvn test -Dtest=ShuiKeIntegrationTest            # 23 个 API 测试
+mvn test -Dtest=ClosedLoopIntegrationTest        # 19 个 E2E 测试
 ```
 
-## API Pattern
+测试使用 `@SpringBootTest` + `@MockBean(MinioClient.class)`，Redis 通过 `@ConditionalOnBean` 自动跳过，连接真实本地 MySQL。
 
-All responses wrapped in `ApiResponse<T>`: `{code:200, message:"success", data:T, timestamp:123}`. Error codes: 200=success, 1001=wrong password, 4001=AI unavailable. Paginated results use `PageResult<T>`: `{records:[], total:N, page:N, pageSize:N}`.
+## 文档索引
 
-## Key Architecture Decisions
-
-1. **Two-level review flow**: material status: `AI_EVALUATING` → `AI_COMPLETED` → `COLLEGE_APPROVED` → `OFFICE_APPROVED` (final). Rejected at any stage → `AI_REJECTED`.
-2. **College isolation**: `PhaseMaterialController.reviewerList()` filters by `teacher.college_id == currentUser.college_id` for COLLEGE_REVIEWER role. Office sees all.
-3. **AI async execution**: `AiEvaluationService.submit()` inserts eval record, then uses `applicationContext.getBean()` + `new Thread()` to avoid `@Async` self-invocation failure. 4 dimensions called via `CompletableFuture.allOf()`.
-4. **Volcano LLM call**: direct `RestTemplate` POST to `{endpoint}/chat/completions`. Max tokens configurable (6000 for alignment reports). Timeout 180s for alignment.
-5. **MinIO file naming**: `phase-materials/{materialType}/{yyyy/MM}/{originalName}_{HHmmss}.ext`
-6. **Prompt templates**: 4 material types × 4 dimensions = 16 specialized templates stored in `ai_prompt_templates` table. Dean can edit them online (auto-versioning).
-7. **Material delete cascade**: deletes files from MinIO + AI evaluation records + phase_material record.
-
-## Database
-
-- Production: `mysql 5.6.26` running on local machine (docker-compose uses 8.0)
-- Init scripts: `docs/database.sql` (schema + seed data) + `docs/prompt_data.sql` (16 prompt templates)
-- Default accounts: `admin/123456`, `teacher1/123456`, `reviewer2/123456` (all roles)
-
-## ECS Deployment
-
-- Server: 47.97.68.38 (Aliyun ECS, CentOS 7, x86_64)
-- Images pushed to ACR: `crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-{backend,frontend}:1.0`
-- ECS docker-compose: `/opt/shuike/docker-compose.yml`
-- ECS SSH: `ssh root@47.97.68.38`, password: `118023203czH++`
-- ACR login: `docker login --username=你啊空腹阿狸 crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com`
-
-## Common Issues & Fixes
-
-- **File upload failure on ECS**: MinIO bucket not created. Run `docker exec shuike-minio mc mb local/shuike-manager`
-- **`semester_id` column missing**: `ALTER TABLE phase_materials ADD COLUMN semester_id BIGINT DEFAULT NULL AFTER course_id`
-- **`material_id` NOT NULL**: `ALTER TABLE phase_material_files MODIFY material_id BIGINT DEFAULT NULL`
-- **JWT key too short**: Secret must be ≥ 256 bits (32+ chars). Set via `JWT_SECRET` env var.
-- **MySQL Chinese garbled**: Add `skip-character-set-client-handshake` in MySQL config + mount `mysql.cnf`
-- **ARM image on x86 ECS**: Build with `--platform linux/amd64` locally. The `.dockerignore` excludes `target/` so ECS Dockerfile (Dockerfile.ecs) should not use `.dockerignore` or use a separate one.
-- **ECS Docker Hub unreachable**: Configure `registry-mirrors` in `/etc/docker/daemon.json` with `docker.1ms.run` etc.
+| 文档 | 路径 |
+|------|------|
+| API 完整文档 | `docs/API.md` |
+| 数据库 Schema | `docs/数据库/` |
+| 部署修复指南 | `docs/测试报告/部署问题修复指导.md` |
+| 需求版本管理 | `docs/需求版本管理.md` |
+| 项目配置手册 | `docs/项目配置手册.md` |
+| 路演 PPT | `docs/pitch-deck/index.html` |
 
 ---
 
-> **版本**: v1.0 | **更新日期**: 2026-06-11
-
----
-
-## Superpowers-ZH 中文增强版
-
-本项目已安装 superpowers-zh 技能框架（24 个 skills）。
-
-### 核心规则
-
-1. **收到任务时，先检查是否有匹配的 skill** — 哪怕只有 1% 的可能性也要检查
-2. **设计先于编码** — 收到功能需求时，先用 brainstorming skill 做需求分析
-3. **测试先于实现** — 写代码前先写测试（TDD）
-4. **验证先于完成** — 声称完成前必须运行验证命令
-
-### 可用 Skills
-
-| Skill | 用途 |
-|-------|------|
-| brainstorming | 需求分析→设计规格，不写代码先想清楚 |
-| using-superpowers | 元技能：确保每次对话前检查并调用匹配的 skills |
-| writing-plans | 把规格拆成可执行的实施步骤 |
-| executing-plans | 按计划逐步实施，每步验证 |
-| test-driven-development | 严格 TDD：先写测试，再写代码 |
-| systematic-debugging | 四阶段调试法：定位→分析→假设→修复 |
-| requesting-code-review | 派遣审查 agent 检查代码质量 |
-| receiving-code-review | 技术严谨地处理审查反馈 |
-| verification-before-completion | 证据先行：声称完成前必须跑验证 |
-| dispatching-parallel-agents | 多任务并发执行 |
-| subagent-driven-development | 每个任务一个 agent，两轮审查 |
-| using-git-worktrees | 隔离式特性开发 |
-| finishing-a-development-branch | 合并/PR/保留/丢弃四选一 |
-| writing-skills | 创建新 skill 的方法论 |
-| chinese-code-review | 国内团队文化代码审查 |
-| chinese-commit-conventions | 中文 Git 提交规范 |
-| chinese-documentation | 中文技术文档写作规范 |
-| chinese-git-workflow | Gitee/Coding/极狐 GitLab 工作流 |
-| mcp-builder | 构建生产级 MCP 服务器 |
-| workflow-runner | 多角色 YAML 工作流编排 |
-| browser-use | 浏览器自动化 |
-| cloud | 云端服务交互 |
-| remote-browser | 远程浏览器控制 |
-
-### 如何使用
-
-当任务匹配某个 skill 时，使用 `Skill` 工具加载对应 skill 并严格遵循其流程。**绝不要用 Read 工具读取 SKILL.md 文件。**
-
-如果你认为哪怕只有 1% 的可能性某个 skill 适用于你正在做的事情，你必须调用该 skill 检查。
+> **更新**: 2026-06-15 | **版本**: v2.1

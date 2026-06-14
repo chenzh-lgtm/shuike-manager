@@ -24,7 +24,7 @@
     <!-- 第二行图表：学院分布 + 教师Top10 + 各材料平均分 -->
     <div class="chart-row">
       <div class="chart-card chart-card-half">
-        <div class="chart-header">各学院材料提交统计</div>
+        <div class="chart-header">各学院各材料类型AI平均分</div>
         <div ref="collegeChartRef" class="chart-body"></div>
       </div>
       <div class="chart-card chart-card-half">
@@ -100,21 +100,33 @@ function buildScoreChart(scoreDist: number[]) {
   })
 }
 
-function buildCollegeChart(collegeData: any) {
-  if (!collegeChartRef.value || !collegeData) return
+/**
+ * 各学院各材料类型AI平均分 — 分组柱状图
+ * collegeAvgData: { "计算机学院":{"TEACHING_PLAN":80,...}, "数学学院":{...} }
+ * labels: ["授课计划","教案","课件","考核方案"]
+ * keys:   ["TEACHING_PLAN","LESSON_PLAN","COURSEWARE","EXAM_PLAN"]
+ */
+function buildCollegeChart(collegeAvgData: any, labels: string[], keys: string[]) {
+  if (!collegeChartRef.value || !collegeAvgData || !Object.keys(collegeAvgData).length) return
   const chart = echarts.init(collegeChartRef.value)
-  const entries = Object.entries(collegeData) as [string, number][]
+  const collegeNames = Object.keys(collegeAvgData)
+  // 每种材料类型生成一个柱状系列
+  const colorMap: Record<string,string> = {
+    TEACHING_PLAN: '#1a3c34', LESSON_PLAN: '#c8963e',
+    COURSEWARE: '#409EFF', EXAM_PLAN: '#4a7c59'
+  }
   chart.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    grid: { left: '3%', right: '8%', bottom: '3%', top: '8%', containLabel: true },
-    xAxis: { type: 'value', axisLabel: { fontSize: 10 } },
-    yAxis: { type: 'category', data: entries.map(([k]) => k), inverse: true, axisLabel: { fontSize: 11 } },
-    series: [{
-      type: 'bar', data: entries.map(([,v]) => v),
-      itemStyle: { color: new echarts.graphic.LinearGradient(0,0,1,0,[
-        {offset:0,color:'#1a3c34'},{offset:1,color:'#4a7c59'}
-      ]), borderRadius: [0,6,6,0] }
-    }]
+    legend: { data: labels, bottom: 0, textStyle: { fontSize: 11 } },
+    grid: { left: '3%', right: '4%', bottom: '14%', top: '8%', containLabel: true },
+    xAxis: { type: 'category', data: collegeNames, axisLabel: { fontSize: 10, rotate: collegeNames.length > 5 ? 20 : 0 } },
+    yAxis: { type: 'value', name: '平均分', min: 0, max: 100, axisLabel: { fontSize: 10 } },
+    series: keys.map((k, i) => ({
+      name: labels[i], type: 'bar', barWidth: '50%',
+      data: collegeNames.map(cn => (collegeAvgData[cn] && collegeAvgData[cn][k]) ? collegeAvgData[cn][k] : 0),
+      itemStyle: { color: colorMap[k] || '#999', borderRadius: [4,4,0,0] },
+      emphasis: { itemStyle: { borderRadius: [4,4,0,0] } }
+    }))
   })
 }
 
@@ -178,7 +190,7 @@ onMounted(async () => {
     nextTick(() => {
       buildTypeChart(data.value)
       buildScoreChart(data.value.scoreDistribution)
-      buildCollegeChart(data.value.collegeCounts)
+      buildCollegeChart(data.value.collegeMaterialAvgScores, data.value.materialTypeLabels||[], data.value.materialTypeKeys||[])
       buildTeacherChart(data.value.topTeachers)
       buildFlowChart(data.value)
     })

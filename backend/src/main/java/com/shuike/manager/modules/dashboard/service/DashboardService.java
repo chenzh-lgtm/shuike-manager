@@ -257,18 +257,59 @@ public class DashboardService {
         }
         stats.put("scoreDistribution", scoreBuckets);
 
-        // ===== 4. 学院材料统计 =====
+        // ===== 4. 各学院各材料类型AI平均分 =====
+        // 建立 userId -> collegeId/collegeName 映射
+        Map<Long, Long> userCollegeMap = new HashMap<>();
+        Map<Long, String> allUserNames = new HashMap<>();
+        List<User> allUsers = userMapper.selectList(null);
+        for (User u : allUsers) {
+            userCollegeMap.put(u.getId(), u.getCollegeId());
+            allUserNames.put(u.getId(), u.getRealName());
+        }
+        // 建立 collegeId -> collegeName 映射
         List<College> colleges = collegeMapper.selectList(null);
         Map<Long, String> collegeNames = new HashMap<>();
         for (College c : colleges) collegeNames.put(c.getId(), c.getName());
-        // 按user的collegeId关联
-        Map<String, Integer> collegeCounts = new LinkedHashMap<>();
-        for (PhaseMaterial m : allMaterials) {
-            User u = userMapper.selectById(m.getTeacherId());
-            String cn = u != null && u.getCollegeId() != null ? collegeNames.getOrDefault(u.getCollegeId(), "未知") : "未知";
-            collegeCounts.merge(cn, 1, Integer::sum);
+        // 建立 materialId -> AI评分 映射
+        Map<Long, Integer> materialScoreMap = new HashMap<>();
+        for (AiEvaluation e : allEvals) {
+            if (e.getScore() != null) materialScoreMap.put(e.getMaterialId(), e.getScore());
         }
-        stats.put("collegeCounts", collegeCounts);
+        // 学院名 -> 材料类型 -> [分数列表]
+        Map<String, Map<String, List<Integer>>> collegeMaterialScores = new LinkedHashMap<>();
+        for (PhaseMaterial m : allMaterials) {
+            Long uCollegeId = userCollegeMap.get(m.getTeacherId());
+            if (uCollegeId == null) continue;
+            String collegeName = collegeNames.getOrDefault(uCollegeId, "未知");
+            Integer score = materialScoreMap.get(m.getId());
+            if (score == null) continue;
+            String mt = m.getMaterialType();
+            if (mt == null) continue;
+            collegeMaterialScores
+                .computeIfAbsent(collegeName, k -> new LinkedHashMap<>())
+                .computeIfAbsent(mt, k -> new ArrayList<>())
+                .add(score);
+        }
+        // 计算每个学院每种材料类型的平均分
+        String[] materialTypes = {"TEACHING_PLAN","LESSON_PLAN","COURSEWARE","EXAM_PLAN"};
+        String[] materialLabels = {"授课计划","教案","课件","考核方案"};
+        Map<String, Map<String, Double>> collegeAvgScores = new LinkedHashMap<>();
+        for (Map.Entry<String, Map<String, List<Integer>>> cEntry : collegeMaterialScores.entrySet()) {
+            Map<String, Double> typeAvgs = new LinkedHashMap<>();
+            for (int i = 0; i < materialTypes.length; i++) {
+                List<Integer> scores = cEntry.getValue().get(materialTypes[i]);
+                double avg = 0;
+                if (scores != null && !scores.isEmpty()) {
+                    avg = scores.stream().mapToInt(Integer::intValue).average().orElse(0);
+                    avg = Math.round(avg * 10.0) / 10.0;
+                }
+                typeAvgs.put(materialTypes[i], avg);
+            }
+            collegeAvgScores.put(cEntry.getKey(), typeAvgs);
+        }
+        stats.put("collegeMaterialAvgScores", collegeAvgScores);
+        stats.put("materialTypeLabels", materialLabels);
+        stats.put("materialTypeKeys", materialTypes);
 
         // ===== 5. 教师提交统计 Top10 =====
         Map<Long, Integer> teacherCounts = new LinkedHashMap<>();
