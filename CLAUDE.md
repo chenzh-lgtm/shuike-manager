@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **项目规则**: 请同时遵守 [.claude/rules/shuike-manager.md](.claude/rules/shuike-manager.md) 中的全部规则。
-**Skills**: 本项目已安装 superpowers-zh 技能框架（25 个 skills 在 `.claude/skills/`），任务匹配时用 `Skill` 工具加载，不要用 Read 读 SKILL.md。
+**Skills**: 本项目已安装 27 个 skills（superpowers-zh 23 + html-ppt 4），全部在 `.claude/skills/`。mattpocock 技能已全部移除。
 
 ---
 
@@ -28,6 +28,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `ALTER TABLE phase_materials ADD COLUMN semester_id BIGINT DEFAULT NULL AFTER course_id`
 - `ALTER TABLE phase_material_files MODIFY material_id BIGINT DEFAULT NULL`
 - `ALTER TABLE alignment_reports ADD COLUMN report_json LONGTEXT DEFAULT NULL AFTER suggestions`
+- `ALTER TABLE ai_prompt_templates ADD COLUMN material_type VARCHAR(30) DEFAULT NULL AFTER scene`
+- `INSERT INTO system_configs (config_key, config_value, description) VALUES ('enable_college_review', 'true', '是否启用学院审核环节') ON DUPLICATE KEY UPDATE config_value=config_value`
 
 ## 后端快速部署（日常使用）
 
@@ -37,30 +39,33 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Hom
 cd backend && mvn clean package -DskipTests -q
 
 # 2. 上传 JAR + 替换容器（1分钟）
-scp target/teacher-file-manager-1.0.0.jar root@<ECS_IP>:/opt/shuike/backend/
-ssh root@<ECS_IP> '
+scp target/teacher-file-manager-1.0.0.jar root@47.97.68.38:/opt/shuike/backend/
+ssh root@47.97.68.38 '
   docker cp /opt/shuike/backend/teacher-file-manager-1.0.0.jar shuike-backend:/app/app.jar
   docker restart shuike-backend
-  sleep 15 && docker logs shuike-backend --tail 10
+  sleep 15 && docker logs shuike-backend --tail 5
 '
-
-# 3.（可选）若需重建完整镜像
-# docker tag shuike-backend:1.0 shuike-backend:1.0-base  # 在 ECS 上做基础镜像快照
 ```
 
 > ⚠️ **不要用 `docker build --platform linux/amd64` 在 Mac 上构建后端**（QEMU 模拟 Java 编译需 3h+）。本地 mvn 编译后直接替换容器 JAR 即可。
 
 ## 前端部署
 
-前端 Node.js 编译不涉及 JVM 模拟，本地 docker build 始终可用：
-
 ```bash
 cd frontend
+npx vite build                            # 本地构建（7秒）
 docker build --platform linux/amd64 -t shuike-frontend:1.0 .
-docker tag shuike-frontend:1.0 <ACR_REGISTRY>/shuike2026/teacher-file-manager-frontend:1.0
-docker push <ACR_REGISTRY>/shuike2026/teacher-file-manager-frontend:1.0
-ssh root@<ECS_IP> 'cd /opt/shuike && docker compose pull frontend && docker compose up -d --no-deps frontend'
+docker save shuike-frontend:1.0 | gzip > /tmp/shuike-frontend.tar.gz
+scp /tmp/shuike-frontend.tar.gz root@47.97.68.38:/opt/shuike/
+ssh root@47.97.68.38 '
+  cd /opt/shuike
+  gunzip -c shuike-frontend.tar.gz | docker load
+  docker tag shuike-frontend:1.0 crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-frontend:1.0
+  docker compose up -d --no-deps frontend
+'
 ```
+
+> ⚠️ ECS compose 使用 ACR 镜像名 `crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/teacher-file-manager-frontend:1.0`，部署前必须 `docker tag` 覆盖，否则会拉取远程旧镜像。
 
 ## 本地 Docker 同步
 
@@ -117,18 +122,23 @@ public void analyzeAsync(Long tcpId, Long initiatorId) {  // ✅ 使用传入的
 
 | 需求 | Controller | Service | 关键点 |
 |------|-----------|---------|------|
-| 教师提交材料 | `PhaseMaterialController.create()` | `PhaseMaterialService` | 创建后自动触发 AI 评审（异步） |
-| 主任/教务处审核 | `ManualReviewController.review()` | `ManualReviewService` | `reviewLevel:COLLEGE/OFFICE` |
-| AI 评审 | `AiEvaluationController.submit()` | `AiEvaluationService` | 4维 CompletableFuture 并发，完成后通知 |
-| 对齐分析 | `AlignmentController.analyze()` | `AlignmentService` | `@Async`，LLM 返回 JSON 解析后入库 |
-| Prompt 模板 | `PromptTemplateController` | `PromptTemplateService` | 在线编辑自动创建新版本 |
+| 教师提交材料 | `PhaseMaterialController.create()` | `PhaseMaterialService` | 创建后自动触发 AI 评审（异步），冲突检测自动取消旧记录 |
+| 主任/教务处审核 | `ManualReviewController.review()` | `ManualReviewService` | `reviewLevel:COLLEGE/OFFICE`，可配置 `enable_college_review` |
+| AI 评审 | `AiEvaluationController.submit()` | `AiEvaluationService` | 5维（4维LLM并发+1维本地AI生成检测），ContentSanitizer 反注入 |
+| 对齐分析 | `AlignmentController.analyze()` | `AlignmentService` | `@Async`，LLM 返回 JSON 解析后入库，支持 PDF 导出 |
+| Prompt 模板 | `PromptTemplateController` | `PromptTemplateService` | 16条v2.0专业版，在线编辑自动创建新版本 |
 | 文件管理 | `FileController` | — | MinIO 预签名 URL + PDFBox/POI 解析 |
-| Dashboard | `DashboardController.office()` | `DashboardService.getOfficeStats()` | `collegeMaterialAvgScores` 是6/14新增的各学院×材料类型平均分 |
+| Dashboard | `DashboardController.office()` | `DashboardService.getOfficeStats()` | `collegeMaterialAvgScores` 各学院×材料类型平均分 |
+| 操作日志 | `OperationLogController` | `OperationLogService` | AOP 15个Controller 35方法覆盖，人类可读格式 |
+| 系统配置 | `SystemConfigController` | `SystemConfigService` | 11项在线管理，审核流程动态切换 |
+| 批量审核 | `PhaseMaterialController.batchReview()` | — | 主任端勾选通过，`POST /reviewer/batch-review` |
+| 导出Excel | `PhaseMaterialController.exportApproved()` | — | CSV UTF-8 BOM，主任/教务处，学院隔离 |
+| 材料重传 | `PhaseMaterialController.resubmit()` | `PhaseMaterialService` | 驳回→重传→重置状态→重新AI评审 |
 
 ## ECS 运维速查
 
 ```
-SSH: ssh root@<ECS_IP>
+SSH: ssh root@47.97.68.38
 项目路径: /opt/shuike/
 
 docker logs shuike-backend --tail 100 | grep -i "对齐\|ERROR"
@@ -138,15 +148,15 @@ docker restart shuike-backend
 docker compose up -d --no-deps frontend  # 只重建前端
 ```
 
-ACR: `docker login --username=<ACR_USERNAME> <ACR_REGISTRY>`
+ACR: `crpi-x4kb991wgxw0oamg.cn-hangzhou.personal.cr.aliyuncs.com/shuike2026/`
 
 ## 测试
 
 ```bash
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home
 cd backend
-mvn test                                         # 全部 42 个
-mvn test -Dtest=ShuiKeIntegrationTest            # 23 个 API 测试
+mvn test                                         # 全部 48 个
+mvn test -Dtest=ShuiKeIntegrationTest            # 29 个 API 测试
 mvn test -Dtest=ClosedLoopIntegrationTest        # 19 个 E2E 测试
 ```
 
@@ -156,13 +166,16 @@ mvn test -Dtest=ClosedLoopIntegrationTest        # 19 个 E2E 测试
 
 | 文档 | 路径 |
 |------|------|
+| PRD 需求分析 | `docs/prd需求分析/` |
 | API 完整文档 | `docs/API.md` |
 | 数据库 Schema | `docs/数据库/` |
+| Prompt 模板数据 | `docs/数据库/prompt_data.sql` |
 | 部署修复指南 | `docs/测试报告/部署问题修复指导.md` |
-| 需求版本管理 | `docs/需求版本管理.md` |
+| 需求版本管理 | `docs/需求版本管理-v2.2.md` |
+| PRD 验收测试 | `docs/测试报告/PRD验收测试报告-v2.3.md` |
 | 项目配置手册 | `docs/项目配置手册.md` |
 | 路演 PPT | `docs/pitch-deck/index.html` |
 
 ---
 
-> **更新**: 2026-06-15 | **版本**: v2.1
+> **更新**: 2026-06-16 | **版本**: v2.3 | **测试**: 48/48 ✅ | **PRD验收**: 94.5%

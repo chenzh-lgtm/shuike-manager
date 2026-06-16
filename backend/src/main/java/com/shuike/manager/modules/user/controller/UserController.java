@@ -2,6 +2,7 @@ package com.shuike.manager.modules.user.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.shuike.manager.common.aspect.OperationLog;
 import com.shuike.manager.common.response.ApiResponse;
 import com.shuike.manager.common.response.PageResult;
 import com.shuike.manager.modules.college.entity.College;
@@ -73,6 +74,7 @@ public class UserController {
         return ApiResponse.success(data);
     }
 
+    @OperationLog(module = "用户管理", action = "CREATE", targetType = "USER")
     @PostMapping
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<User> create(@RequestBody Map<String, Object> body) {
@@ -88,6 +90,7 @@ public class UserController {
         return ApiResponse.success(service.create(user, roles));
     }
 
+    @OperationLog(module = "用户管理", action = "UPDATE", targetType = "USER")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<User> update(@PathVariable Long id, @RequestBody Map<String, Object> body) {
@@ -103,6 +106,7 @@ public class UserController {
         return ApiResponse.success(service.update(id, user, roles));
     }
 
+    @OperationLog(module = "用户管理", action = "UPDATE", targetType = "USER")
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<Void> updateStatus(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
@@ -110,6 +114,7 @@ public class UserController {
         return ApiResponse.success(null);
     }
 
+    @OperationLog(module = "用户管理", action = "DELETE", targetType = "USER")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
@@ -121,6 +126,7 @@ public class UserController {
      * 批量导入用户（CSV/TXT格式）
      * 格式：工号,姓名,密码(可选),学院名称或ID,角色1-角色2
      */
+    @OperationLog(module = "用户管理", action = "IMPORT", targetType = "USER")
     @PostMapping("/import")
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<Map<String, Object>> batchImport(@RequestParam("file") MultipartFile file) {

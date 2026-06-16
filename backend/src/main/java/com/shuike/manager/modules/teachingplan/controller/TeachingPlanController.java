@@ -2,6 +2,7 @@ package com.shuike.manager.modules.teachingplan.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.shuike.manager.common.aspect.OperationLog;
 import com.shuike.manager.common.response.ApiResponse;
 import com.shuike.manager.common.response.PageResult;
 import com.shuike.manager.common.security.SecurityUtils;
@@ -38,18 +39,21 @@ public class TeachingPlanController {
         return ApiResponse.success(service.getById(id));
     }
 
+    @OperationLog(module = "授课计划管理", action = "CREATE", targetType = "TEACHING_PLAN")
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
     public ApiResponse<TeachingPlan> create(@Valid @RequestBody TeachingPlan plan) {
         return ApiResponse.success(service.create(plan));
     }
 
+    @OperationLog(module = "授课计划管理", action = "UPDATE", targetType = "TEACHING_PLAN")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('TEACHER')")
     public ApiResponse<TeachingPlan> update(@PathVariable Long id, @Valid @RequestBody TeachingPlan plan) {
         return ApiResponse.success(service.update(id, plan));
     }
 
+    @OperationLog(module = "授课计划管理", action = "DELETE", targetType = "TEACHING_PLAN")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('TEACHER')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
@@ -57,6 +61,7 @@ public class TeachingPlanController {
         return ApiResponse.success(null);
     }
 
+    @OperationLog(module = "授课计划管理", action = "SUBMIT", targetType = "TEACHING_PLAN")
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('TEACHER')")
     public ApiResponse<Void> submit(@PathVariable Long id) {
@@ -64,6 +69,7 @@ public class TeachingPlanController {
         return ApiResponse.success("提交成功", null);
     }
 
+    @OperationLog(module = "授课计划管理", action = "WITHDRAW", targetType = "TEACHING_PLAN")
     @PostMapping("/{id}/withdraw")
     @PreAuthorize("hasRole('TEACHER')")
     public ApiResponse<Void> withdraw(@PathVariable Long id) {

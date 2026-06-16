@@ -43,6 +43,7 @@
         <el-button @click="viewingReport=false">← 返回列表</el-button>
         <span class="report-title">{{ report.majorName }} — 产业需求对齐分析报告</span>
         <span class="report-date">分析时间: {{ report.createdAt }}</span>
+        <el-button type="primary" size="small" @click="exportPdf" style="margin-left:auto">📄 导出PDF</el-button>
       </div>
 
       <!-- 一、总体概述 -->
@@ -220,6 +221,12 @@ async function handleAnalyze(){
 
 async function viewReport(row:any){
   try{const r:any=await alignmentApi.reportDetail(row.id);report.value=r.data;viewingReport.value=true;await nextTick();buildCharts()}catch{ElMessage.error('加载报告失败')}
+}
+
+function exportPdf() {
+  if (!report.value?.id) return
+  const token = (window as any).__AUTH_TOKEN__ || localStorage.getItem('token') || ''
+  window.open('/api/alignment/reports/' + report.value.id + '/pdf?token=' + encodeURIComponent(token), '_blank')
 }
 
 function buildCharts(){

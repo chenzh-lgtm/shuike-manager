@@ -2,6 +2,7 @@ package com.shuike.manager.modules.coursestandard.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.shuike.manager.common.aspect.OperationLog;
 import com.shuike.manager.common.response.ApiResponse;
 import com.shuike.manager.common.response.PageResult;
 import com.shuike.manager.common.security.SecurityUtils;
@@ -60,6 +61,7 @@ public class CourseStandardController {
         return ApiResponse.success(service.getById(id));
     }
 
+    @OperationLog(module = "课程标准管理", action = "CREATE", targetType = "COURSE_STANDARD")
     @PostMapping
     @PreAuthorize("hasRole('DEAN')")
     public ApiResponse<CourseStandard> create(@RequestBody CourseStandard standard) {
@@ -68,6 +70,7 @@ public class CourseStandardController {
         return ApiResponse.success(standard);
     }
 
+    @OperationLog(module = "课程标准管理", action = "UPDATE", targetType = "COURSE_STANDARD")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('DEAN')")
     public ApiResponse<Void> update(@PathVariable Long id, @RequestBody CourseStandard standard) {
@@ -75,6 +78,7 @@ public class CourseStandardController {
         return ApiResponse.success(null);
     }
 
+    @OperationLog(module = "课程标准管理", action = "DELETE", targetType = "COURSE_STANDARD")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('DEAN')")
     public ApiResponse<Void> delete(@PathVariable Long id) {

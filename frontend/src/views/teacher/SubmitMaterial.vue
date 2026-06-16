@@ -74,7 +74,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { phaseMaterialApi, courseApi, fileApi, semesterApi } from '@/api/common'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const formRef = ref()
 const uploadRef = ref()
 const submitting = ref(false)
@@ -171,7 +173,7 @@ async function doSubmit() {
 }
 
 onMounted(async () => {
-  try { const res: any = await courseApi.list({ page:1, pageSize:500 }); courses.value = res.data?.records || [] } catch {}
+  try { const res: any = await courseApi.list({ page:1, pageSize:500, collegeId: authStore.userInfo?.collegeId }); courses.value = res.data?.records || [] } catch {}
   try { const sres: any = await semesterApi.list(); semesters.value = sres.data || []; const active = semesters.value.find((s:any)=>s.isActive===1); if (active) form.semesterId = active.id } catch {}
 })
 </script>

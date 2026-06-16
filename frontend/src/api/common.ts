@@ -62,7 +62,8 @@ export const phaseMaterialApi = {
   create: (data: any) => http.post('/phase-materials', data),
   delete: (id: number) => http.delete(`/phase-materials/${id}`),
   getFiles: (id: number) => http.get(`/phase-materials/${id}/files`),
-  addFiles: (id: number, fileIds: number[]) => http.post(`/phase-materials/${id}/files`, { fileIds })
+  addFiles: (id: number, fileIds: number[]) => http.post(`/phase-materials/${id}/files`, { fileIds }),
+  resubmit: (id: number) => http.post(`/phase-materials/${id}/resubmit`)
 }
 export const courseStandardApi = {
   list: (params: any) => http.get('/course-standards', { params }),

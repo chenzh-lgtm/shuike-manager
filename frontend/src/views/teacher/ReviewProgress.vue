@@ -118,7 +118,7 @@ const loading = ref(false); const tableData = ref<any[]>([]); const total = ref(
 const statusFilter = ref(''); const dialogVisible = ref(false); const currentItem = ref<any>(null)
 const currentFiles = ref<any[]>([]); const reuploadVisible = ref(false); const reuploading = ref(false)
 const reuploadFiles = ref<any[]>([]); const reuploadFileIds = ref<number[]>([])
-let reuploadMaterialId: number | null = null
+const reuploadItem = ref<any>(null)
 
 const typeLabels: Record<string, string> = {
   TEACHING_PLAN:'授课计划', LESSON_PLAN:'教案', COURSEWARE:'课件', EXAM_PLAN:'考核方案'
@@ -170,7 +170,7 @@ async function handleDelete(item: any) {
 }
 
 function handleReupload(item: any) {
-  reuploadMaterialId = item.id; reuploadFiles.value = []; reuploadFileIds.value = []; reuploadVisible.value = true
+  reuploadItem.value = item; reuploadFiles.value = []; reuploadFileIds.value = []; reuploadVisible.value = true
 }
 
 async function handleReuploadFile(file: any) {
@@ -179,10 +179,19 @@ async function handleReuploadFile(file: any) {
 }
 
 async function confirmReupload() {
-  if (reuploadFileIds.value.length === 0) { ElMessage.warning('请先上传文件'); return }
+  if (!reuploadItem.value) return
   reuploading.value = true
-  try { await phaseMaterialApi.addFiles(reuploadMaterialId!, reuploadFileIds.value); ElMessage.success('已重新提交'); reuploadVisible.value = false; fetchData() }
-  catch { ElMessage.error('提交失败') } finally { reuploading.value = false }
+  try {
+    // 先上传新文件（如果有）
+    if (reuploadFileIds.value.length > 0) {
+      await phaseMaterialApi.addFiles(reuploadItem.value.id, reuploadFileIds.value)
+    }
+    // 重置状态并重新触发AI评审
+    await phaseMaterialApi.resubmit(reuploadItem.value.id)
+    ElMessage.success('已重新提交，AI正在重新评审')
+    reuploadVisible.value = false
+    fetchData()
+  } catch { ElMessage.error('提交失败') } finally { reuploading.value = false }
 }
 
 onMounted(() => fetchData())

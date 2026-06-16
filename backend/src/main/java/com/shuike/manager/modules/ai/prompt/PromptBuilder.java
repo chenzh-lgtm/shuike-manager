@@ -33,6 +33,17 @@ public class PromptBuilder {
         DIMENSION_LABELS.put("standard_match", "与课程标准匹配度");
         DIMENSION_LABELS.put("format", "格式规范性");
         DIMENSION_LABELS.put("innovation", "创新性");
+        DIMENSION_LABELS.put("ai_generated", "AI生成检测");
+    }
+
+    // 维度权重（总分加权用）
+    private static final Map<String, Double> DIMENSION_WEIGHTS = new HashMap<>();
+    static {
+        DIMENSION_WEIGHTS.put("completeness", 0.28);
+        DIMENSION_WEIGHTS.put("standard_match", 0.28);
+        DIMENSION_WEIGHTS.put("format", 0.18);
+        DIMENSION_WEIGHTS.put("innovation", 0.16);
+        DIMENSION_WEIGHTS.put("ai_generated", 0.10);
     }
 
     /**

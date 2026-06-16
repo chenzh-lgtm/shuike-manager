@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import com.shuike.manager.common.aspect.OperationLog;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/files")
@@ -34,6 +36,7 @@ public class FileController {
     private final TeachingPlanFileMapper planFileMapper;
     private final DocumentParserService documentParserService;
 
+    @OperationLog(module = "文件管理", action = "UPLOAD", targetType = "FILE")
     @PostMapping("/upload")
     public ApiResponse<Map<String, Object>> upload(@RequestParam("file") MultipartFile file,
                                                     @RequestParam(defaultValue = "PLAN") String type,

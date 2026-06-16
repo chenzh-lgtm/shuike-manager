@@ -2,6 +2,7 @@ package com.shuike.manager.modules.phasematerial.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.shuike.manager.common.aspect.OperationLog;
 import com.shuike.manager.common.response.ApiResponse;
 import com.shuike.manager.common.response.PageResult;
 import com.shuike.manager.common.security.SecurityUtils;
@@ -15,6 +16,7 @@ import com.shuike.manager.modules.phasematerial.mapper.PhaseMaterialMapper;
 import com.shuike.manager.modules.phasematerial.service.PhaseMaterialService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.shuike.manager.modules.course.entity.Course;
@@ -124,17 +126,27 @@ public class PhaseMaterialController {
         return ApiResponse.success(service.getById(id));
     }
 
+    @OperationLog(module = "材料管理", action = "CREATE", targetType = "PHASE_MATERIAL")
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
     public ApiResponse<PhaseMaterial> create(@RequestBody PhaseMaterial material) {
         return ApiResponse.success(service.create(material));
     }
 
+    @OperationLog(module = "材料管理", action = "DELETE", targetType = "PHASE_MATERIAL")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('TEACHER')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ApiResponse.success(null);
+    }
+
+    /** 重新提交已驳回的材料 */
+    @OperationLog(module = "材料管理", action = "SUBMIT", targetType = "PHASE_MATERIAL")
+    @PostMapping("/{id}/resubmit")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ApiResponse<PhaseMaterial> resubmit(@PathVariable Long id) {
+        return ApiResponse.success(service.resubmit(id));
     }
 
     @GetMapping("/{id}/files")
@@ -239,7 +251,9 @@ public class PhaseMaterialController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long courseId,
-            @RequestParam(required = false) Long teacherId) {
+            @RequestParam(required = false) Long teacherId,
+            @RequestParam(required = false) Integer aiScoreMin,
+            @RequestParam(required = false) Integer aiScoreMax) {
         // 获取当前用户的学院ID（用于COLLEGE_REVIEWER隔离）
         Long currentUserId = SecurityUtils.getCurrentUserId();
         User currentUser = userMapper.selectById(currentUserId);
@@ -318,6 +332,18 @@ public class PhaseMaterialController {
                     .collect(Collectors.toList());
         }
 
+        // 按AI评分区间过滤
+        if (aiScoreMin != null) {
+            enriched = enriched.stream()
+                    .filter(item -> { Object sc = item.get("aiScore"); return sc instanceof Number && ((Number)sc).intValue() >= aiScoreMin; })
+                    .collect(Collectors.toList());
+        }
+        if (aiScoreMax != null) {
+            enriched = enriched.stream()
+                    .filter(item -> { Object sc = item.get("aiScore"); return sc instanceof Number && ((Number)sc).intValue() <= aiScoreMax; })
+                    .collect(Collectors.toList());
+        }
+
         // keyword 搜索过滤
         if (keyword != null && !keyword.trim().isEmpty()) {
             String kw = keyword.trim().toLowerCase();
@@ -334,6 +360,70 @@ public class PhaseMaterialController {
         int end = Math.min(start + (int) pageSize, enriched.size());
         List<Map<String, Object>> paged = start < enriched.size() ? enriched.subList(start, end) : new ArrayList<>();
         return ApiResponse.success(PageResult.of(paged, total, page, pageSize));
+    }
+
+    /** 批量审核（主任端勾选通过） */
+    @OperationLog(module = "审核管理", action = "REVIEW", targetType = "PHASE_MATERIAL")
+    @PostMapping("/reviewer/batch-review")
+    @PreAuthorize("hasRole('COLLEGE_REVIEWER')")
+    public ApiResponse<Void> batchReview(@RequestBody Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        List<Integer> ids = (List<Integer>) body.get("ids");
+        if (ids == null || ids.isEmpty()) return ApiResponse.error(400, "请选择材料");
+        String action = (String) body.getOrDefault("action", "CONFIRM");
+        for (Integer id : ids) {
+            AiEvaluation eval = aiEvaluationMapper.selectOne(new LambdaQueryWrapper<AiEvaluation>()
+                    .eq(AiEvaluation::getMaterialId, id.longValue()).orderByDesc(AiEvaluation::getCreatedAt).last("LIMIT 1"));
+            if (eval != null && "COMPLETED".equals(eval.getStatus())) {
+                ManualReview review = new ManualReview();
+                review.setEvaluationId(eval.getId()); review.setReviewerId(SecurityUtils.getCurrentUserId());
+                review.setAction(action); review.setReviewComment("批量审核");
+                review.setReviewTime(java.time.LocalDateTime.now());
+                manualReviewMapper.insert(review);
+                PhaseMaterial m = materialMapper.selectById(id.longValue());
+                if (m != null) { m.setStatus("REJECT".equals(action) ? "AI_REJECTED" : "COLLEGE_APPROVED"); materialMapper.updateById(m); }
+            }
+        }
+        return ApiResponse.success("批量审核完成", null);
+    }
+
+    /** 导出已通过材料为Excel（主任只导出本院，教务处导出全部） */
+    @GetMapping("/export/approved")
+    @PreAuthorize("hasAnyRole('OFFICE','COLLEGE_REVIEWER')")
+    public ResponseEntity<byte[]> exportApproved(
+            @RequestParam(required = false) String materialType,
+            @RequestParam(required = false) Long courseId) {
+        // 主任只能导出本院教师的数据
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        User currentUser = userMapper.selectById(currentUserId);
+        List<String> currentRoles = SecurityUtils.getCurrentUserRoles();
+        boolean isReviewer = currentRoles.contains("COLLEGE_REVIEWER") && !currentRoles.contains("OFFICE");
+
+        List<PhaseMaterial> materials = materialMapper.selectList(new LambdaQueryWrapper<PhaseMaterial>()
+                .eq(PhaseMaterial::getStatus, "OFFICE_APPROVED")
+                .eq(materialType != null, PhaseMaterial::getMaterialType, materialType));
+        Map<Long, String> cn = new HashMap<>(), tn = new HashMap<>();
+        Map<Long, Long> tc = new HashMap<>();
+        StringBuilder sb = new StringBuilder("﻿"); // BOM for Excel UTF8
+        sb.append("编号,教师,课程,材料类型,描述,提交时间\n");
+        for (PhaseMaterial m : materials) {
+            Long teacherCollegeId = tc.computeIfAbsent(m.getTeacherId(), k -> {
+                User u = userMapper.selectById(k); return u != null ? u.getCollegeId() : null; });
+            // 主任只导出本院
+            if (isReviewer && (teacherCollegeId == null || !teacherCollegeId.equals(currentUser.getCollegeId()))) continue;
+            String courseName = cn.computeIfAbsent(m.getCourseId(), k -> {
+                Course c = courseMapper.selectById(k); return c != null ? c.getName() : "-"; });
+            String teacherName = tn.computeIfAbsent(m.getTeacherId(), k -> {
+                User u = userMapper.selectById(k); return u != null ? u.getRealName() : "-"; });
+            if (courseId != null && !courseId.equals(m.getCourseId())) continue;
+            sb.append(m.getId()).append(",").append(teacherName).append(",").append(courseName).append(",")
+              .append(m.getMaterialType()).append(",").append(m.getDescription() != null ? m.getDescription().replace(",", "，") : "-")
+              .append(",").append(m.getSubmitTime()).append("\n");
+        }
+        byte[] bytes = sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        return ResponseEntity.ok().header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=approved_materials.csv").header(org.springframework.http.HttpHeaders.CONTENT_TYPE,
+                "text/csv; charset=UTF-8").body(bytes);
     }
 
     private String getStageLabel(String status) {

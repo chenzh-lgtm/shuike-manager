@@ -84,10 +84,11 @@ const detail = ref<any>(null)
 const review = ref<any>(null)
 
 const dimensionItems: Record<string, any> = {
-  completeness: { label: '内容完整性', weight: 30 },
+  completeness: { label: '内容完整性', weight: 28 },
   standard_match: { label: '与课程标准匹配度', weight: 30 },
   format: { label: '格式规范性', weight: 20 },
-  innovation: { label: '创新性', weight: 20 }
+  innovation: { label: '创新性', weight: 16 },
+  ai_generated: { label: 'AI生成检测', weight: 10 }
 }
 
 const dimScores = computed(() => {

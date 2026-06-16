@@ -46,7 +46,9 @@ const router = createRouter({
         { path: 'colleges', name: 'CollegeManage', component: () => import('@/views/office/CollegeManage.vue'), meta: { title: '学院管理' } },
         { path: 'courses', name: 'CourseManage', component: () => import('@/views/office/CourseManage.vue'), meta: { title: '课程管理' } },
         { path: 'semesters', name: 'SemesterManage', component: () => import('@/views/office/SemesterManage.vue'), meta: { title: '学期管理' } },
-        { path: 'prompts', name: 'PromptManage', component: () => import('@/views/office/PromptManage.vue'), meta: { title: 'AI Prompt管理' } }
+        { path: 'prompts', name: 'PromptManage', component: () => import('@/views/office/PromptManage.vue'), meta: { title: 'AI Prompt管理' } },
+        { path: 'operation-logs', name: 'OperationLogs', component: () => import('@/views/office/OperationLogs.vue'), meta: { title: '操作日志' } },
+        { path: 'system-config', name: 'SystemConfig', component: () => import('@/views/office/SystemConfig.vue'), meta: { title: '系统配置' } }
       ]
     },
     {

@@ -2,6 +2,7 @@ package com.shuike.manager.modules.alignment.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.shuike.manager.common.aspect.OperationLog;
 import com.shuike.manager.common.response.ApiResponse;
 import com.shuike.manager.common.response.PageResult;
 import com.shuike.manager.common.security.SecurityUtils;
@@ -25,6 +26,7 @@ public class AlignmentController {
     /**
      * 发起AI分析（异步，立即返回）
      */
+    @OperationLog(module = "对齐分析", action = "ANALYZE", targetType = "TALENT_PLAN")
     @PostMapping("/analyze")
     @PreAuthorize("hasRole('DEAN')")
     public ApiResponse<String> analyze(@RequestBody Map<String, Long> body) {
@@ -61,10 +63,20 @@ public class AlignmentController {
         return ApiResponse.success(service.getById(id));
     }
 
+    @OperationLog(module = "对齐分析", action = "DELETE", targetType = "ALIGNMENT_REPORT")
     @DeleteMapping("/reports/{id}")
     @PreAuthorize("hasRole('DEAN')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ApiResponse.success(null);
+    }
+
+    /** 导出报告为可打印的HTML页面（浏览器打印为PDF） */
+    @GetMapping(value = "/reports/{id}/pdf", produces = "text/html;charset=UTF-8")
+    @ResponseBody
+    public String exportPdf(@PathVariable Long id) {
+        AlignmentReport report = service.getById(id);
+        if (report == null) return "<h1>报告不存在</h1>";
+        return service.buildPdfHtml(report);
     }
 }

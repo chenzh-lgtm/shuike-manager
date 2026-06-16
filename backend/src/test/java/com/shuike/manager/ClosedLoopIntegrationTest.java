@@ -265,7 +265,7 @@ class ClosedLoopIntegrationTest {
 
         // 验证7组图表数据
         String[] requiredFields = {"statusCounts","typeStats","scoreDistribution",
-                "collegeCounts","topTeachers","typeAvgScores","totalMaterials"};
+                "collegeMaterialAvgScores","topTeachers","typeAvgScores","totalMaterials"};
         for (String f : requiredFields) {
             assertTrue(d.has(f), "教务处Dashboard缺少字段: "+f);
         }

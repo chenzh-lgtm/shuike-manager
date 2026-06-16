@@ -1,5 +1,6 @@
 package com.shuike.manager.modules.aievaluation.controller;
 
+import com.shuike.manager.common.aspect.OperationLog;
 import com.shuike.manager.common.response.ApiResponse;
 import com.shuike.manager.modules.aievaluation.entity.AiPromptTemplate;
 import com.shuike.manager.modules.aievaluation.service.PromptTemplateService;
@@ -43,6 +44,7 @@ public class PromptTemplateController {
     /**
      * 更新Prompt模板（自动创建新版本，旧版本设为不激活）
      */
+    @OperationLog(module = "Prompt管理", action = "UPDATE", targetType = "PROMPT_TEMPLATE")
     @PutMapping("/{id}")
     public ApiResponse<AiPromptTemplate> update(@PathVariable Long id, @RequestBody Map<String, String> body) {
         return ApiResponse.success(service.update(id,
@@ -52,6 +54,7 @@ public class PromptTemplateController {
     /**
      * 切换激活状态
      */
+    @OperationLog(module = "Prompt管理", action = "UPDATE", targetType = "PROMPT_TEMPLATE")
     @PutMapping("/{id}/toggle-active")
     public ApiResponse<Void> toggleActive(@PathVariable Long id) {
         service.toggleActive(id);

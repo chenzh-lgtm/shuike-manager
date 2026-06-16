@@ -108,7 +108,10 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { aiApi } from '@/api/aiEvaluation'
 import { phaseMaterialApi, courseApi, fileApi } from '@/api/common'
+import { useAuthStore } from '@/stores/auth'
 import type { UploadFile } from 'element-plus'
+
+const authStore = useAuthStore()
 
 const materialType = ref('TEACHING_PLAN')
 const courseId = ref<number | null>(null)
@@ -202,7 +205,7 @@ async function fetchHistory() {
 }
 
 onMounted(async () => {
-  try { const res: any = await courseApi.list({ page: 1, pageSize: 100 }); courses.value = res.data?.records || [] } catch {}
+  try { const res: any = await courseApi.list({ page: 1, pageSize: 100, collegeId: authStore.userInfo?.collegeId }); courses.value = res.data?.records || [] } catch {}
   fetchHistory()
 })
 </script>

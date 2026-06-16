@@ -12,17 +12,24 @@
             <el-radio-button value="AI_REJECTED">已驳回</el-radio-button>
           </el-radio-group>
         </div>
-        <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+        <div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <el-select v-model="filterCourseId" placeholder="选择课程" clearable style="width:200px" @change="onCourseChange" @clear="onFilterChange">
             <el-option v-for="c in courseOptions" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
           <el-select v-model="filterTeacherId" placeholder="选择教师" clearable style="width:160px" @change="onFilterChange" @clear="onFilterChange">
             <el-option v-for="t in teacherOptions" :key="t.id" :label="t.name" :value="t.id" />
           </el-select>
+          <span style="font-size:12px;color:var(--color-text-muted)">AI评分:</span>
+          <el-input-number v-model="aiScoreMin" :min="0" :max="100" size="small" placeholder="最低分" style="width:100px" @change="onFilterChange" />
+          <span>—</span>
+          <el-input-number v-model="aiScoreMax" :min="0" :max="100" size="small" placeholder="最高分" style="width:100px" @change="onFilterChange" />
+          <el-button v-if="selectedIds.length>0" type="success" size="small" @click="batchConfirm">批量通过({{selectedIds.length}})</el-button>
+          <el-button type="primary" size="small" @click="exportApproved">📥 导出已通过名单</el-button>
         </div>
       </template>
 
-      <el-table :data="tableData" v-loading="loading" style="width:100%" :default-sort="{prop:'createdAt',order:'descending'}">
+      <el-table :data="tableData" v-loading="loading" style="width:100%" :default-sort="{prop:'createdAt',order:'descending'}" @selection-change="onSelect">
+        <el-table-column type="selection" width="40" />
         <el-table-column prop="id" label="编号" width="65" />
         <el-table-column label="教师" width="90">
           <template #default="{ row }">{{ row.teacherName || '-' }}</template>
@@ -208,14 +215,16 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { phaseMaterialApi, fileApi } from '@/api/common'
 import { manualReviewApi } from '@/api/manualReview'
+import http from '@/api/index'
 
 const loading = ref(false); const saving = ref(false); const dialogVisible = ref(false)
 const tableData = ref<any[]>([]); const total = ref(0); const page = ref(1); const statusFilter = ref('')
 const filterCourseId = ref<number | null>(null); const filterTeacherId = ref<number | null>(null)
+const aiScoreMin = ref<number | null>(null); const aiScoreMax = ref<number | null>(null)
 const courseOptions = ref<any[]>([]); const teacherOptions = ref<any[]>([])
 const currentItem = ref<any>(null); const currentFiles = ref<any[]>([])
 const comment = ref(''); const action = ref('CONFIRM'); const revisionRequirements = ref('')
-const previewLoading = ref(0)
+const previewLoading = ref(0); const selectedIds = ref<number[]>([])
 
 const typeLabels: Record<string, string> = {
   TEACHING_PLAN:'授课计划', LESSON_PLAN:'教案', COURSEWARE:'课件', EXAM_PLAN:'考核方案'
@@ -236,7 +245,7 @@ function scoreGrade(s: number) {
   if (s>=90) return '优秀'; if (s>=75) return '良好'; if (s>=60) return '合格'; return '待改进'
 }
 function dimLabel(k: string) {
-  const m: any = { completeness:'内容完整性', standard_match:'课标匹配度', format:'格式规范性', innovation:'创新性' }
+  const m: any = { completeness:'内容完整性', standard_match:'课标匹配度', format:'格式规范性', innovation:'创新性', ai_generated:'AI生成检测' }
   return m[k] || k
 }
 function formatSize(b: number) {
@@ -276,6 +285,8 @@ function onCourseChange(cid: number | null) {
 
 function onFilterChange() { page.value = 1; fetchData() }
 
+function onSelect(rows: any[]) { selectedIds.value = rows.map((r: any) => r.id) }
+
 async function fetchData() {
   loading.value = true
   try {
@@ -283,6 +294,8 @@ async function fetchData() {
     if (statusFilter.value) params.status = statusFilter.value
     if (filterCourseId.value && filterCourseId.value > 0) params.courseId = filterCourseId.value
     if (filterTeacherId.value && filterTeacherId.value > 0) params.teacherId = filterTeacherId.value
+    if (aiScoreMin.value != null) params.aiScoreMin = aiScoreMin.value
+    if (aiScoreMax.value != null) params.aiScoreMax = aiScoreMax.value
     const res: any = await phaseMaterialApi.reviewerList(params)
     tableData.value = res.data?.records || []; total.value = res.data?.total || 0
   } catch {} finally { loading.value = false }
@@ -382,6 +395,25 @@ async function handleReview(a: string) {
     dialogVisible.value = false; fetchData()
   } catch (e: any) { ElMessage.error('操作失败') }
   finally { saving.value = false }
+}
+
+async function batchConfirm() {
+  if (selectedIds.value.length === 0) { ElMessage.warning('请先勾选材料'); return }
+  saving.value = true
+  try {
+    await http.post('/phase-materials/reviewer/batch-review', { ids: selectedIds.value, action: 'CONFIRM' })
+    ElMessage.success(`已批量通过 ${selectedIds.value.length} 条材料`)
+    selectedIds.value = []; fetchData()
+  } catch { ElMessage.error('操作失败') } finally { saving.value = false }
+}
+
+async function exportApproved() {
+  try {
+    const res = await http.get('/phase-materials/export/approved', { responseType: 'blob' })
+    const url = URL.createObjectURL(new Blob([res as any], { type: 'text/csv;charset=UTF-8' }))
+    const a = document.createElement('a'); a.href = url; a.download = '已通过材料名单.csv'; a.click()
+    URL.revokeObjectURL(url); ElMessage.success('导出成功')
+  } catch { ElMessage.error('导出失败') }
 }
 
 onMounted(async () => { await loadFilters(); fetchData() })

@@ -1,5 +1,6 @@
 package com.shuike.manager.modules.semester.controller;
 
+import com.shuike.manager.common.aspect.OperationLog;
 import com.shuike.manager.common.response.ApiResponse;
 import com.shuike.manager.modules.semester.entity.Semester;
 import com.shuike.manager.modules.semester.service.SemesterService;
@@ -24,6 +25,7 @@ public class SemesterController {
         return ApiResponse.success(service.getById(id));
     }
 
+    @OperationLog(module = "学期管理", action = "CREATE", targetType = "SEMESTER")
     @PostMapping
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<Semester> create(@RequestBody Semester semester) {
@@ -31,6 +33,7 @@ public class SemesterController {
         return ApiResponse.success(semester);
     }
 
+    @OperationLog(module = "学期管理", action = "UPDATE", targetType = "SEMESTER")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<Void> update(@PathVariable Long id, @RequestBody Semester semester) {
@@ -38,6 +41,7 @@ public class SemesterController {
         return ApiResponse.success(null);
     }
 
+    @OperationLog(module = "学期管理", action = "DELETE", targetType = "SEMESTER")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
@@ -45,6 +49,7 @@ public class SemesterController {
         return ApiResponse.success(null);
     }
 
+    @OperationLog(module = "学期管理", action = "UPDATE", targetType = "SEMESTER")
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<Void> activate(@PathVariable Long id) {

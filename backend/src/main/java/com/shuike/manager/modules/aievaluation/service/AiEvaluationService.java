@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shuike.manager.common.exception.BusinessException;
 import com.shuike.manager.common.exception.ErrorCode;
 import com.shuike.manager.common.config.MinioConfig;
+import com.shuike.manager.modules.ai.ContentSanitizer;
 import com.shuike.manager.modules.ai.client.VolcanoEngineClient;
 import com.shuike.manager.modules.ai.parser.EvaluationResultParser;
 import com.shuike.manager.modules.ai.prompt.PromptBuilder;
@@ -50,6 +51,7 @@ public class AiEvaluationService {
     private final VolcanoEngineClient volcanoClient;
     private final PromptBuilder promptBuilder;
     private final EvaluationResultParser resultParser;
+    private final ContentSanitizer contentSanitizer;
     private final MinioClient minioClient;
     private final MinioConfig minioConfig;
     private final DocumentParserService documentParserService;
@@ -147,7 +149,17 @@ public class AiEvaluationService {
                 materialContent = "[材料无文本内容]";
             }
 
-            // 2. 获取关联的课程标准
+            // 2. AI安全：清洗注入内容
+            boolean hasInjection = contentSanitizer.containsInjection(materialContent);
+            materialContent = contentSanitizer.sanitize(materialContent);
+            if (hasInjection) {
+                log.warn("[AI安全] 材料 evaluationId={} 检测到提示词注入，已过滤", evaluationId);
+            }
+
+            // 3. AI生成检测（本地算法，不调用LLM）
+            int aiGeneratedScore = 100 - contentSanitizer.detectAIGeneration(materialContent); // 分数越高说明越像人工写的
+
+            // 4. 获取关联的课程标准
             String courseStandard = "";
             if (material.getCourseId() != null) {
                 CourseStandard standard = standardMapper.selectOne(
@@ -168,7 +180,7 @@ public class AiEvaluationService {
             log.info("[AI评审] evaluationId={}, 材料类型={}, Prompt维度数={}",
                     evaluationId, material.getMaterialType(), prompts.size());
 
-            // 4. 并发调用 4 个维度 LLM
+            // 4. 并发调用 5 个维度 LLM（4个AI评审+1个本地AI检测）
             Map<String, EvaluationResultParser.DimensionResult> dimensionResults = new LinkedHashMap<>();
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             String[] dimensions = {"completeness", "standard_match", "format", "innovation"};
@@ -200,7 +212,15 @@ public class AiEvaluationService {
                 log.warn("[AI评审] evaluationId={} 部分维度超时", evaluationId);
             }
 
-            // 5. 汇总评分
+            // 5. 融入AI生成检测评分
+            java.util.ArrayList<String> aiGenIssues = new java.util.ArrayList<>();
+            if (aiGeneratedScore < 70) {
+                aiGenIssues.add("材料疑似AI生成，人工评分请关注原创性");
+            }
+            dimensionResults.put("ai_generated", new EvaluationResultParser.DimensionResult("ai_generated", aiGeneratedScore,
+                    aiGenIssues, aiGeneratedScore < 70 ? "请关注原始性" : "通过AI生成检测"));
+
+            // 6. 汇总评分（含AI生成检测维度）
             EvaluationResultParser.CompositeResult composite = resultParser.aggregateResults(dimensionResults);
             String dimensionScoresJson = objectMapper.writeValueAsString(composite.getDimensionScores());
             String suggestionsJson = objectMapper.writeValueAsString(composite.getSuggestions());

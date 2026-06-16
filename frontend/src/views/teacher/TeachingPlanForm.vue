@@ -30,6 +30,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { teachingPlanApi } from '@/api/teachingPlan'
 import { courseApi, semesterApi, fileApi } from '@/api/common'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -84,7 +87,7 @@ async function handleSave(submit: boolean) {
 }
 
 onMounted(async () => {
-  try { const res: any = await courseApi.list({ page: 1, pageSize: 100 }); courses.value = res.data?.records || [] } catch {}
+  try { const res: any = await courseApi.list({ page: 1, pageSize: 100, collegeId: authStore.userInfo?.collegeId }); courses.value = res.data?.records || [] } catch {}
   try { const res: any = await semesterApi.list(); semesters.value = res.data || [] } catch {}
   if (isEdit) {
     try {

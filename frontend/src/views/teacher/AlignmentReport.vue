@@ -30,6 +30,7 @@
         <el-button @click="viewingReport=false">← 返回列表</el-button>
         <span class="report-title">{{ report.majorName }} — 产业需求对齐分析报告</span>
         <span class="report-date">分析时间: {{ report.createdAt }}</span>
+        <el-button type="primary" size="small" @click="exportPdf" style="margin-left:auto">📄 导出PDF</el-button>
       </div>
 
       <div class="report-section"><h2 class="section-title">一、专业概况与产业背景</h2>
@@ -85,6 +86,10 @@ function scoreColor(s:number){if(s>=90)return'#4a7c59';if(s>=75)return'#409EFF';
 function gradeText(s:number){if(s>=90)return'优秀';if(s>=75)return'良好';if(s>=60)return'合格';return'待改进'}
 
 async function viewReport(row:any){try{const r:any=await alignmentApi.reportDetail(row.id);report.value=r.data;viewingReport.value=true;await nextTick();buildCharts()}catch{}}
+
+function exportPdf(){if(!report.value?.id)return;const t=localStorage.getItem('token')||'';window.open('/api/alignment/reports/'+report.value.id+'/pdf?token='+encodeURIComponent(t),'_blank')}
+
+
 
 function buildCharts(){
   if(!rp.value)return

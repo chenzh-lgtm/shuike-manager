@@ -64,9 +64,53 @@ public class PhaseMaterialService {
 
     @Transactional
     public PhaseMaterial create(PhaseMaterial material) {
-        material.setTeacherId(SecurityUtils.getCurrentUserId());
+        Long teacherId = SecurityUtils.getCurrentUserId();
+        material.setTeacherId(teacherId);
         material.setStatus("AI_EVALUATING");  // 直接进入AI评审
+
+        // 冲突检测：同一教师+同一课程+同一学期+同一材料类型，且状态不是OFFICE_APPROVED
+        Long existingCount = materialMapper.selectCount(new LambdaQueryWrapper<PhaseMaterial>()
+                .eq(PhaseMaterial::getTeacherId, teacherId)
+                .eq(PhaseMaterial::getCourseId, material.getCourseId())
+                .eq(PhaseMaterial::getSemesterId, material.getSemesterId())
+                .eq(PhaseMaterial::getMaterialType, material.getMaterialType())
+                .ne(PhaseMaterial::getStatus, "OFFICE_APPROVED"));
+        if (existingCount > 0) {
+            // 存在未通过的记录，将旧的置为已取消
+            materialMapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<PhaseMaterial>()
+                    .eq(PhaseMaterial::getTeacherId, teacherId)
+                    .eq(PhaseMaterial::getCourseId, material.getCourseId())
+                    .eq(PhaseMaterial::getSemesterId, material.getSemesterId())
+                    .eq(PhaseMaterial::getMaterialType, material.getMaterialType())
+                    .ne(PhaseMaterial::getStatus, "OFFICE_APPROVED")
+                    .set(PhaseMaterial::getStatus, "CANCELLED"));
+            log.info("[材料创建] 检测到重复提交，已将旧材料置为CANCELLED teacherId={} courseId={}", teacherId, material.getCourseId());
+        }
+
         materialMapper.insert(material);
+        return material;
+    }
+
+    /**
+     * 重新提交被驳回的材料：重置状态为AI_EVALUATING，重新触发AI评审
+     */
+    @Transactional
+    public PhaseMaterial resubmit(Long id) {
+        PhaseMaterial material = getById(id);
+        if (!"AI_REJECTED".equals(material.getStatus())) {
+            throw new BusinessException(400, "只有已驳回的材料可以重新提交");
+        }
+        material.setStatus("AI_EVALUATING");
+        materialMapper.updateById(material);
+
+        // 重新触发AI评审
+        try {
+            aiEvaluationService.submit(id);
+            log.info("[材料重传] materialId={} AI评审已重新触发", id);
+        } catch (Exception e) {
+            log.error("[材料重传] materialId={} AI评审触发失败: {}", id, e.getMessage());
+        }
+
         return material;
     }
 

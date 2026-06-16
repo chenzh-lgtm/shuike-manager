@@ -303,6 +303,7 @@ DROP TABLE IF EXISTS `ai_prompt_templates`;
 CREATE TABLE `ai_prompt_templates` (
   `id`            BIGINT       NOT NULL AUTO_INCREMENT,
   `scene`         VARCHAR(50)  NOT NULL COMMENT '场景：MATERIAL_EVALUATION/INDUSTRY_ANALYSIS/ALIGNMENT_ANALYSIS',
+  `material_type` VARCHAR(30)  DEFAULT NULL COMMENT '材料类型：TEACHING_PLAN/LESSON_PLAN/COURSEWARE/EXAM_PLAN',
   `dimension`     VARCHAR(50)  DEFAULT NULL COMMENT '评分维度（仅评审场景）',
   `template_text` LONGTEXT     NOT NULL COMMENT 'Prompt 模板内容',
   `version`       VARCHAR(20)  NOT NULL COMMENT '版本号',
@@ -432,18 +433,13 @@ INSERT INTO `system_configs` (`config_key`, `config_value`, `description`) VALUE
 ('ai_default_model',         'doubao-pro-32k', '默认 AI 模型名称'),
 ('notification_poll_seconds','30',     '通知轮询间隔(秒)'),
 ('jwt_access_expire_seconds','7200',   'Access Token 过期时间(秒)'),
-('jwt_refresh_expire_seconds','604800','Refresh Token 过期时间(秒)');
+('jwt_refresh_expire_seconds','604800','Refresh Token 过期时间(秒)'),
+('enable_college_review',   'true',   '是否启用学院审核环节（关闭后AI评审直接到教务处终审）');
 
 -- AI Prompt 模板初始化数据
+-- 材料评审模板（16条 v2.0，4材料类型×4维度）：请执行 docs/数据库/prompt_data.sql
+-- 产业需求分析和对齐分析模板：
 INSERT INTO `ai_prompt_templates` (`scene`, `dimension`, `template_text`, `version`, `is_active`, `description`) VALUES
-('MATERIAL_EVALUATION', 'completeness', '你是一位资深教学评审专家。请对以下{{materialType}}进行「内容完整性」维度的评审，评分范围0-100分。\n\n评审标准：\n1. 是否涵盖课程核心知识点\n2. 教学目标是否明确\n3. 教学环节是否完整（导入、讲解、练习、总结）\n4. 考核方式是否合理\n\n请以严格的JSON格式返回结果：\n{"score": 85, "issues": ["问题1", "问题2"], "suggestion": "综合建议"}', 'v1.0', 1, '教学材料评审-内容完整性维度'),
-
-('MATERIAL_EVALUATION', 'standard_match', '你是一位资深教学评审专家。请对以下{{materialType}}进行「与课程标准匹配度」维度的评审，评分范围0-100分。\n\n评审标准：\n1. 教学内容是否与课程标准要求一致\n2. 知识点覆盖是否全面\n3. 能力目标是否对应课程标准\n4. 学时分配是否合理\n\n请以严格的JSON格式返回结果：\n{"score": 82, "issues": ["问题1"], "suggestion": "综合建议"}', 'v1.0', 1, '教学材料评审-课程标准匹配度维度'),
-
-('MATERIAL_EVALUATION', 'format', '你是一位资深教学评审专家。请对以下{{materialType}}进行「格式规范性」维度的评审，评分范围0-100分。\n\n评审标准：\n1. 文档排版是否规范\n2. 引用是否标准\n3. 附件是否完整\n4. 表格/图表是否清晰\n\n请以严格的JSON格式返回结果：\n{"score": 88, "issues": [], "suggestion": "综合建议"}', 'v1.0', 1, '教学材料评审-格式规范性维度'),
-
-('MATERIAL_EVALUATION', 'innovation', '你是一位资深教学评审专家。请对以下{{materialType}}进行「创新性」维度的评审，评分范围0-100分。\n\n评审标准：\n1. 教学方法是否有创新\n2. 案例是否新颖且贴近实际\n3. 实践环节设计是否有特色\n4. 是否融入新技术/新理念\n\n请以严格的JSON格式返回结果：\n{"score": 80, "issues": ["问题1"], "suggestion": "综合建议"}', 'v1.0', 1, '教学材料评审-创新性维度'),
-
 ('INDUSTRY_ANALYSIS', NULL, '你是一位产业需求分析专家。请基于以下专业人才培养方案，分析当前产业对该专业的人才需求趋势。\n\n专业名称：{{majorName}}\n人培方案内容：\n{{tcpContent}}\n\n课程体系：\n{{courseSystem}}\n\n请以严格的JSON格式返回：\n{\n  "industryKeywords": ["关键词1","关键词2",...],  // Top10\n  "coverageScore": 78,  // 0-100\n  "gapAnalysis": [{"capability":"能力项","coverage":"NONE/WEAK/STRONG","suggestion":"建议"}],\n  "suggestions": ["建议1","建议2"]\n}', 'v1.0', 1, '产业需求分析'),
 
 ('ALIGNMENT_ANALYSIS', NULL, '你是一位教育教学评估专家。请对以下人才培养方案与课程体系进行对齐分析。\n\n人培方案培养目标：\n{{targets}}\n\n毕业要求：\n{{requirements}}\n\n课程体系：\n{{courseSystem}}\n\n请以严格的JSON格式返回：\n{\n  "mappingCoverage": {"目标1":["课程A","课程B"], "目标2":["课程C"]},\n  "weakPoints": [{"target":"目标X","reason":"缺少对应课程支撑","suggestion":"建议新增/调整课程"}],\n  "overallScore": 80,  // 0-100\n  "suggestions": ["建议1","建议2"]\n}', 'v1.0', 1, '人培方案对齐分析');

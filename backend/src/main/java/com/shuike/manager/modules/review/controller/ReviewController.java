@@ -2,6 +2,7 @@ package com.shuike.manager.modules.review.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.shuike.manager.common.aspect.OperationLog;
 import com.shuike.manager.common.response.ApiResponse;
 import com.shuike.manager.common.response.PageResult;
 import com.shuike.manager.modules.review.entity.ReviewRecord;
@@ -40,6 +41,7 @@ public class ReviewController {
         return ApiResponse.success(PageResult.of(result.getRecords(), result.getTotal(), page, pageSize));
     }
 
+    @OperationLog(module = "审核管理", action = "REVIEW", targetType = "TEACHING_PLAN")
     @PostMapping("/college/{planId}")
     @PreAuthorize("hasRole('COLLEGE_REVIEWER')")
     public ApiResponse<Void> collegeReview(@PathVariable Long planId, @RequestBody Map<String, String> body) {
@@ -47,6 +49,7 @@ public class ReviewController {
         return ApiResponse.success("审核完成", null);
     }
 
+    @OperationLog(module = "审核管理", action = "REVIEW", targetType = "TEACHING_PLAN")
     @PostMapping("/office/{planId}")
     @PreAuthorize("hasRole('OFFICE')")
     public ApiResponse<Void> officeReview(@PathVariable Long planId, @RequestBody Map<String, String> body) {

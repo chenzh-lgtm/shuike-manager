@@ -11,36 +11,35 @@
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:16px">
         <template #title>Prompt 模板说明</template>
         <template #default>
-          每个材料类型对应 4 个评审维度（内容完整性/课程标准匹配度/格式规范性/创新性），共 16 个专用 Prompt 模板。
+          每个材料类型对应 5 个评审维度（内容完整性/课程标准匹配度/格式规范性/创新性/AI生成检测），共 16 个专用 Prompt 模板（AI生成检测为本地算法，无需Prompt模板）。
           修改 Prompt 后自动保存为新版本并立即生效，旧版本保留可回滚。
         </template>
       </el-alert>
 
-      <el-tabs v-model="activeTab" type="border-card">
-        <el-tab-pane v-for="(label, mt) in materialLabels" :key="mt" :label="label">
-          <el-table :data="getTabData(mt)" v-loading="loading" border stripe style="width:100%">
+      <el-tabs v-model="activeTab" type="border-card" @tab-change="onTabChange">
+        <el-tab-pane v-for="mt in materialTypes" :key="mt" :label="materialLabels[mt]" :name="mt">
+          <el-table :data="tabData[mt] || []" v-loading="loading" border stripe style="width:100%">
             <el-table-column label="评审维度" width="160">
               <template #default="{ row }">{{ dimensionLabels[row.dimension] || row.dimension }}</template>
             </el-table-column>
-            <el-table-column label="版本" width="80" align="center">
-              <template #default="{ row }">{{ row.version }}</template>
-            </el-table-column>
+            <el-table-column label="版本" width="80" align="center" prop="version" />
             <el-table-column label="状态" width="90" align="center">
               <template #default="{ row }">
-                <el-tag :type="row.isActive===1?'success':'info'" size="small">{{ row.isActive===1?'激活':'历史' }}</el-tag>
+                <el-tag :type="+row.isActive===1?'success':'info'" size="small">{{ +row.isActive===1?'激活':'历史' }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="Prompt 内容预览" min-width="300" show-overflow-tooltip>
-              <template #default="{ row }">{{ row.templateText ? row.templateText.substring(0, 120) + '...' : '-' }}</template>
+            <el-table-column label="评审标准概要" min-width="260" show-overflow-tooltip>
+              <template #default="{ row }">
+                <span v-if="row.templateText" style="font-size:12px;line-height:1.5">{{ extractStandards(row.templateText) }}</span>
+                <span v-else>-</span>
+              </template>
             </el-table-column>
-            <el-table-column label="描述" width="170" show-overflow-tooltip>
-              <template #default="{ row }">{{ row.description || '-' }}</template>
-            </el-table-column>
+            <el-table-column label="描述" width="170" show-overflow-tooltip prop="description" />
             <el-table-column label="操作" width="140" align="center" fixed="right">
               <template #default="{ row }">
                 <el-button text size="small" type="primary" @click="openEdit(row)">编辑</el-button>
-                <el-button text size="small" :type="row.isActive===1?'warning':'success'" @click="toggleActive(row)">
-                  {{ row.isActive===1 ? '停用' : '激活' }}
+                <el-button text size="small" :type="+row.isActive===1?'warning':'success'" @click="toggleActive(row)">
+                  {{ +row.isActive===1 ? '停用' : '激活' }}
                 </el-button>
               </template>
             </el-table-column>
@@ -84,6 +83,8 @@ const activeTab = ref('TEACHING_PLAN')
 const editVisible = ref(false)
 const allData = ref<Record<string, any[]>>({})
 
+const materialTypes = ['TEACHING_PLAN', 'LESSON_PLAN', 'COURSEWARE', 'EXAM_PLAN']
+
 const materialLabels: Record<string, string> = {
   TEACHING_PLAN: '授课计划',
   LESSON_PLAN: '教案',
@@ -98,8 +99,29 @@ const dimensionLabels: Record<string, string> = {
   innovation: '创新性'
 }
 
-function getTabData(mt: string) {
-  return allData.value[mt] || []
+/** 当前tab按维度排序的数据 */
+const tabData = computed(() => {
+  const result: Record<string, any[]> = {}
+  for (const mt of materialTypes) {
+    const items = allData.value[mt] || []
+    result[mt] = [...items].sort((a, b) => {
+      const order = ['completeness', 'standard_match', 'format', 'innovation']
+      return order.indexOf(a.dimension) - order.indexOf(b.dimension)
+    })
+  }
+  return result
+})
+
+function onTabChange() { /* placeholder */ }
+
+/** 从模板全文中提取评审标准摘要 */
+function extractStandards(text: string): string {
+  const idx = text.indexOf('评审标准：')
+  if (idx >= 0) {
+    const standards = text.substring(idx)
+    return standards.length > 200 ? standards.substring(0, 200) + '…' : standards
+  }
+  return text.length > 200 ? text.substring(0, 200) + '…' : text
 }
 
 const editForm = reactive({
@@ -154,11 +176,9 @@ async function handleSave() {
 async function toggleActive(row: any) {
   try {
     await promptApi.toggleActive(row.id)
-    ElMessage.success(row.isActive === 1 ? '已停用' : '已激活')
+    ElMessage.success(+row.isActive === 1 ? '已停用' : '已激活')
     fetchData()
-  } catch (e) {
-    ElMessage.error('操作失败')
-  }
+  } catch { ElMessage.error('操作失败') }
 }
 
 onMounted(() => fetchData())

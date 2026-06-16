@@ -202,11 +202,135 @@ public class AlignmentService {
 
     private String extractJson(String text) {
         if (text == null) return "{}";
-        // 移除 markdown 代码块标记
         String cleaned = text.replaceAll("```json\\s*", "").replaceAll("```\\s*", "").trim();
         int start = cleaned.indexOf('{');
         int end = cleaned.lastIndexOf('}');
         if (start >= 0 && end > start) return cleaned.substring(start, end + 1);
         return "{}";
+    }
+
+    /** 构建可打印的报告HTML页面（浏览器Ctrl+P保存为PDF） */
+    public String buildPdfHtml(AlignmentReport report) {
+        String majorName = esc(report.getMajorName() != null ? report.getMajorName() : "未知专业");
+        String createdAt = report.getCreatedAt() != null ? report.getCreatedAt().toString() : "";
+        int score = report.getCoverageScore() != null ? report.getCoverageScore() : 0;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\"><title>").append(majorName).append(" - 对齐分析报告</title>");
+        sb.append("<style>body{font-family:'SimSun','Songti SC',serif;max-width:900px;margin:0 auto;padding:30px;color:#333;line-height:1.8}");
+        sb.append("h1{text-align:center;font-size:22px;margin-bottom:5px}h2{font-size:16px;border-bottom:2px solid #1a3c34;padding-bottom:5px;margin-top:25px}");
+        sb.append(".meta{text-align:center;color:#666;font-size:13px;margin-bottom:20px}.score{text-align:center;font-size:48px;font-weight:bold;color:#1a3c34;margin:15px 0}");
+        sb.append("table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}th,td{border:1px solid #ddd;padding:8px;text-align:left}");
+        sb.append("th{background:#f5f5f5}.tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;margin:2px}");
+        sb.append("@media print{body{padding:20px}.no-print{display:none}}</style></head><body>");
+
+        sb.append("<h1>").append(majorName).append("</h1>");
+        sb.append("<p class=\"meta\">产业需求对齐分析报告 | 分析时间: ").append(createdAt).append(" | 覆盖度评分: ").append(score).append("分</p>");
+
+        // 解析reportJson
+        try {
+            if (report.getReportJson() != null && !report.getReportJson().isEmpty()) {
+                JsonNode root = objectMapper.readTree(report.getReportJson());
+
+                // 概述
+                if (root.has("overview")) {
+                    sb.append("<h2>一、专业概况与产业背景</h2><p>").append(esc(root.get("overview").asText(""))).append("</p>");
+                }
+
+                // 产业背景
+                if (root.has("industryBackground")) {
+                    JsonNode ib = root.get("industryBackground");
+                    sb.append("<h2>二、产业背景与发展趋势</h2>");
+                    if (ib.has("summary")) sb.append("<p>").append(esc(ib.get("summary").asText(""))).append("</p>");
+                    if (ib.has("trends") && ib.get("trends").isArray()) {
+                        sb.append("<ul>");
+                        for (JsonNode t : ib.get("trends")) sb.append("<li>").append(esc(t.asText())).append("</li>");
+                        sb.append("</ul>");
+                    }
+                }
+
+                // 需求分析
+                if (root.has("demandAnalysis")) {
+                    JsonNode da = root.get("demandAnalysis");
+                    sb.append("<h2>三、产业人才需求分析</h2>");
+                    if (da.has("summary")) sb.append("<p>").append(esc(da.get("summary").asText(""))).append("</p>");
+                    if (da.has("requiredSkills") && da.get("requiredSkills").isArray()) {
+                        sb.append("<table><tr><th>技能</th><th>掌握程度</th><th>重要度</th></tr>");
+                        for (JsonNode s : da.get("requiredSkills")) {
+                            sb.append("<tr><td>").append(esc(s.path("skill").asText("-"))).append("</td>");
+                            sb.append("<td>").append(esc(s.path("level").asText("-"))).append("</td>");
+                            sb.append("<td>").append(s.path("importance").asInt(0)).append("</td></tr>");
+                        }
+                        sb.append("</table>");
+                    }
+                }
+
+                // 课程分析
+                if (root.has("courseAnalysis")) {
+                    JsonNode ca = root.get("courseAnalysis");
+                    sb.append("<h2>四、课程体系分析</h2>");
+                    if (ca.has("summary")) sb.append("<p>").append(esc(ca.get("summary").asText(""))).append("</p>");
+                }
+
+                // 学习成果
+                if (root.has("learningOutcomes")) {
+                    JsonNode lo = root.get("learningOutcomes");
+                    sb.append("<h2>五、学习成果达成分析</h2>");
+                    if (lo.has("summary")) sb.append("<p>").append(esc(lo.get("summary").asText(""))).append("</p>");
+                }
+
+                // 就业分析
+                if (root.has("employmentAnalysis")) {
+                    JsonNode ea = root.get("employmentAnalysis");
+                    sb.append("<h2>六、就业前景分析</h2>");
+                    if (ea.has("summary")) sb.append("<p>").append(esc(ea.get("summary").asText(""))).append("</p>");
+                    if (ea.has("employmentRate")) sb.append("<p>预计就业率: ").append(esc(ea.get("employmentRate").asText(""))).append("</p>");
+                    if (ea.has("startingSalary")) sb.append("<p>起薪范围: ").append(esc(ea.get("startingSalary").asText(""))).append("</p>");
+                }
+            }
+
+            // 差距分析
+            if (report.getGapAnalysis() != null && !report.getGapAnalysis().isEmpty()) {
+                JsonNode gaps = objectMapper.readTree(report.getGapAnalysis());
+                if (gaps.isArray() && gaps.size() > 0) {
+                    sb.append("<h2>七、人培方案与产业需求差距分析</h2>");
+                    for (JsonNode g : gaps) {
+                        sb.append("<p><strong>").append(esc(g.path("area").asText(g.path("capability").asText("")))).append("</strong></p>");
+                        if (g.has("gap")) sb.append("<p>差距: ").append(esc(g.get("gap").asText(""))).append("</p>");
+                        if (g.has("suggestion")) sb.append("<p>建议: ").append(esc(g.get("suggestion").asText(""))).append("</p>");
+                    }
+                }
+            }
+
+            // 改进建议
+            if (report.getSuggestions() != null && !report.getSuggestions().isEmpty()) {
+                JsonNode suggs = objectMapper.readTree(report.getSuggestions());
+                if (suggs.isArray() && suggs.size() > 0) {
+                    sb.append("<h2>八、改进建议</h2>");
+                    for (JsonNode s : suggs) {
+                        if (s.isTextual()) { sb.append("<p>● ").append(esc(s.asText())).append("</p>"); continue; }
+                        String priority = s.path("priority").asText("");
+                        String category = s.path("category").asText("");
+                        String content = s.path("content").asText(s.path("suggestion").asText(""));
+                        sb.append("<p>");
+                        if (!priority.isEmpty()) sb.append("【").append(esc(priority)).append("优先级】");
+                        if (!category.isEmpty()) sb.append("[").append(esc(category)).append("] ");
+                        sb.append(esc(content)).append("</p>");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            sb.append("<p style=\"color:red\">报告数据解析异常: ").append(esc(e.getMessage())).append("</p>");
+        }
+
+        sb.append("<div class=\"no-print\" style=\"text-align:center;margin-top:30px;padding:15px;background:#f0f0f0;border-radius:5px\">");
+        sb.append("<p>💡 请使用浏览器打印功能保存为PDF：<strong>Ctrl+P (Mac: Cmd+P)</strong> → 目标打印机选择「另存为PDF」</p></div>");
+        sb.append("</body></html>");
+        return sb.toString();
+    }
+
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("\n", "<br>");
     }
 }

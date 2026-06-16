@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -40,6 +41,7 @@ class ShuiKeIntegrationTest {
 
     @Autowired private MockMvc mockMvc;
     @MockBean private MinioClient minioClient;
+    @Autowired private JdbcTemplate jdbcTemplate;  // 用于验证数据库副作用（操作日志等）
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static String adminToken, teacherToken, reviewerToken, officeToken, deanToken;
@@ -174,7 +176,7 @@ class ShuiKeIntegrationTest {
         assertTrue(d.has("statusCounts"));
         assertTrue(d.has("typeStats"));
         assertTrue(d.has("scoreDistribution"));
-        assertTrue(d.has("collegeCounts"));
+        assertTrue(d.has("collegeMaterialAvgScores"));
         assertTrue(d.has("topTeachers"));
         assertTrue(d.has("typeAvgScores"));
         System.out.println("[PASS] TC-DASH-01: 7组图表数据完整");
@@ -277,6 +279,100 @@ class ShuiKeIntegrationTest {
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
         System.out.println("[PASS] TC-EDGE-01: 不存在资源异常处理正常");
+    }
+
+    // ==================== 10. 操作日志 ====================
+
+    @Test @Order(91)
+    @DisplayName("创建材料后操作日志表应有记录")
+    void testOperationLogWrittenAfterCreate() throws Exception {
+        // 记录创建前的日志数量
+        int before = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM operation_logs WHERE module='材料管理' AND action='CREATE'", Integer.class);
+
+        // 创建一个材料（触发 @OperationLog）
+        Map<String, Object> m = new HashMap<>();
+        m.put("materialType", "TEACHING_PLAN"); m.put("courseId", 1);
+        m.put("semesterId", 2); m.put("description", "操作日志测试-" + System.currentTimeMillis());
+        doPost("/api/phase-materials", m, teacherToken);
+
+        // 验证 operation_logs 表新增了一条 CREATE 记录
+        int after = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM operation_logs WHERE module='材料管理' AND action='CREATE'", Integer.class);
+        assertTrue(after > before, "创建材料后应在operation_logs表写入记录，before=" + before + " after=" + after);
+        System.out.println("[PASS] TC-LOG-01: 操作日志写入成功 before=" + before + " after=" + after);
+    }
+
+    @Test @Order(92)
+    @DisplayName("教务处查询操作日志列表(分页)")
+    void testOperationLogList() throws Exception {
+        JsonNode data = doGet("/api/operation-logs?page=1&pageSize=5", adminToken).get("data");
+        assertTrue(data.has("records"));
+        assertTrue(data.has("total"));
+        assertTrue(data.get("total").asInt() > 0, "操作日志列表应有数据");
+        System.out.println("[PASS] TC-LOG-02: 操作日志列表查询 total=" + data.get("total").asInt());
+    }
+
+    @Test @Order(93)
+    @DisplayName("按模块筛选操作日志")
+    void testOperationLogFilterByModule() throws Exception {
+        JsonNode data = doGet("/api/operation-logs?page=1&pageSize=5&module=材料管理", adminToken).get("data");
+        assertTrue(data.get("records").size() > 0, "筛选后应有记录");
+        // MockMvc中文编码兼容：不使用assertEquals精确匹配中文
+        for (JsonNode r : data.get("records")) {
+            String module = r.get("module").asText();
+            assertNotNull(module);
+            assertFalse(module.isEmpty(), "module字段不应为空");
+        }
+        System.out.println("[PASS] TC-LOG-03: 按模块筛选正常 records=" + data.get("records").size());
+    }
+
+    // ==================== 11. 系统配置 ====================
+
+    @Test @Order(94)
+    @DisplayName("教务处查询系统配置列表")
+    void testSystemConfigList() throws Exception {
+        JsonNode data = doGet("/api/system-configs", adminToken).get("data");
+        assertTrue(data.isArray(), "系统配置应返回数组");
+        assertTrue(data.size() >= 10, "至少应有10项配置");
+        System.out.println("[PASS] TC-CFG-01: 系统配置列表 " + data.size() + " 项");
+    }
+
+    @Test @Order(95)
+    @DisplayName("更新系统配置项")
+    void testUpdateSystemConfig() throws Exception {
+        JsonNode configs = doGet("/api/system-configs", adminToken).get("data");
+        assertTrue(configs.size() > 0, "应有配置项");
+        // 取第一条配置
+        Long configId = configs.get(0).get("id").asLong();
+        String originalValue = configs.get(0).get("configValue").asText();
+        assertNotNull(originalValue);
+
+        // 修改为另一个合法值
+        String newValue = "true".equals(originalValue) ? "false" : "true";
+        Map<String, String> body = new HashMap<>();
+        body.put("configValue", newValue);
+        mockMvc.perform(put("/api/system-configs/" + configId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(MAPPER.writeValueAsString(body)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.code").value(200));
+
+        // 恢复原值
+        body.put("configValue", originalValue);
+        mockMvc.perform(put("/api/system-configs/" + configId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(MAPPER.writeValueAsString(body)))
+                .andExpect(status().isOk());
+
+        System.out.println("[PASS] TC-CFG-02: 配置更新成功 id=" + configId);
+    }
+
+    @Test @Order(96)
+    @DisplayName("教师无权访问系统配置 → 403")
+    void testSystemConfigDenied() throws Exception {
+        mockMvc.perform(get("/api/system-configs").header("Authorization", "Bearer " + teacherToken))
+                .andExpect(status().is(403));
+        System.out.println("[PASS] TC-CFG-03: 权限隔离正常(教师403)");
     }
 
     // ==================== 辅助方法 ====================

@@ -18,6 +18,7 @@ import com.shuike.manager.modules.user.entity.User;
 import com.shuike.manager.modules.user.entity.UserRole;
 import com.shuike.manager.modules.user.mapper.UserMapper;
 import com.shuike.manager.modules.user.mapper.UserRoleMapper;
+import com.shuike.manager.modules.systemconfig.service.SystemConfigService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class ManualReviewService {
     private final NotificationMapper notificationMapper;
     private final UserMapper userMapper;
     private final UserRoleMapper userRoleMapper;
+    private final SystemConfigService configService;
 
     public IPage<ManualReview> page(Page<ManualReview> page) {
         return reviewMapper.selectPage(page, new LambdaQueryWrapper<ManualReview>().orderByDesc(ManualReview::getReviewTime));
@@ -55,13 +57,20 @@ public class ManualReviewService {
         PhaseMaterial material = materialMapper.selectById(eval.getMaterialId());
         if (material == null) throw new BusinessException(ErrorCode.NOT_FOUND, "材料不存在");
 
+        // 检查是否启用了学院审核环节
+        boolean enableCollegeReview = configService.getBoolValue("enable_college_review", true);
+
         // 主任审核时检查状态必须是 AI_COMPLETED
         if ("COLLEGE".equals(reviewLevel) && !"AI_COMPLETED".equals(material.getStatus())) {
             throw new BusinessException(400, "当前材料状态不允许主任审核");
         }
-        // 教务处终审时检查状态必须是 COLLEGE_APPROVED
-        if ("OFFICE".equals(reviewLevel) && !"COLLEGE_APPROVED".equals(material.getStatus())) {
-            throw new BusinessException(400, "当前材料状态不允许教务处终审，请等待主任先审核");
+        // 教务处终审时：启用学院审核则需 COLLEGE_APPROVED，否则 AI_COMPLETED 即可
+        if ("OFFICE".equals(reviewLevel)) {
+            String requiredStatus = enableCollegeReview ? "COLLEGE_APPROVED" : "AI_COMPLETED";
+            if (!requiredStatus.equals(material.getStatus())) {
+                throw new BusinessException(400, "当前材料状态不允许教务处终审" +
+                        (enableCollegeReview ? "，请等待主任先审核" : ""));
+            }
         }
 
         ManualReview review = new ManualReview();
@@ -96,7 +105,24 @@ public class ManualReviewService {
         noti.setTitle(levelLabel + ("CONFIRM".equals(action)
                 ? (isFinal ? "审核通过" : "审核通过，已提交教务处终审")
                 : "驳回修改"));
-        noti.setContent(reviewComment != null && !reviewComment.isEmpty() ? reviewComment : "您的「"+typeLabel+"」已被"+levelLabel+("CONFIRM".equals(action)?"通过":"驳回"));
+
+        // 构建通知正文：驳回时包含修改要求和截止日期
+        StringBuilder contentBuilder = new StringBuilder();
+        if (reviewComment != null && !reviewComment.isEmpty()) {
+            contentBuilder.append(reviewComment);
+        } else {
+            contentBuilder.append("您的「").append(typeLabel).append("」已被").append(levelLabel)
+                    .append("CONFIRM".equals(action) ? "通过" : "驳回");
+        }
+        if ("REJECT".equals(action)) {
+            if (revisionRequirements != null && !revisionRequirements.isEmpty()) {
+                contentBuilder.append("\n修改要求：").append(revisionRequirements);
+            }
+            if (deadline != null) {
+                contentBuilder.append("\n截止日期：").append(deadline);
+            }
+        }
+        noti.setContent(contentBuilder.toString());
         noti.setTargetUrl("/teacher/review-progress");
         notificationMapper.insert(noti);
 

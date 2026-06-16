@@ -9,6 +9,7 @@ import com.shuike.manager.modules.user.entity.User;
 import com.shuike.manager.modules.user.mapper.UserMapper;
 import com.shuike.manager.common.security.SecurityUtils;
 import javax.validation.Valid;
+import com.shuike.manager.common.aspect.OperationLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class AuthController {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
+    @OperationLog(module = "认证", action = "LOGIN")
     @PostMapping("/login")
     public ApiResponse<Map<String, Object>> login(@Valid @RequestBody LoginRequest req) {
         return ApiResponse.success(authService.login(req.getUsername(), req.getPassword()));
@@ -32,6 +34,7 @@ public class AuthController {
         return ApiResponse.success(authService.refresh(req.getRefreshToken()));
     }
 
+    @OperationLog(module = "认证", action = "UPDATE", targetType = "USER")
     @PutMapping("/password")
     public ApiResponse<Void> changePassword(@Valid @RequestBody ChangePasswordRequest req) {
         User user = userMapper.selectById(SecurityUtils.getCurrentUserId());

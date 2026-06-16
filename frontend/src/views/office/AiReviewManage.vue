@@ -92,7 +92,8 @@
             <el-divider />
             <el-form label-width="80px">
               <el-form-item label="审核意见"><el-input v-model="comment" type="textarea" :rows="3" placeholder="请填写审核意见（驳回时必填）" /></el-form-item>
-              <el-form-item v-if="action==='REJECT'" label="修改要求"><el-input v-model="revisionRequirements" type="textarea" :rows="2" placeholder="请指出需要修改的具体内容" /></el-form-item>
+              <el-form-item v-if="action==='REJECT'" label="修改要求"><el-input v-model="revisionRequirements" type="textarea" :rows="2" placeholder="请指出需要修改的具体内容（驳回时必填）" /></el-form-item>
+              <el-form-item v-if="action==='REJECT'" label="截止日期"><el-date-picker v-model="deadline" type="date" placeholder="选择修改截止日期" value-format="YYYY-MM-DD" style="width:100%" /></el-form-item>
               <el-form-item>
                 <el-radio-group v-model="action" style="margin-bottom:8px"><el-radio-button value="CONFIRM">✅ 确认通过</el-radio-button><el-radio-button value="REJECT">❌ 驳回修改</el-radio-button></el-radio-group>
               </el-form-item>
@@ -123,7 +124,7 @@ import { manualReviewApi } from '@/api/manualReview'
 const loading=ref(false);const saving=ref(false);const dialogVisible=ref(false)
 const previewLoading=ref(0);const txtPreviewVisible=ref(false);const txtPreviewName=ref('');const txtPreviewContent=ref('')
 const tableData=ref<any[]>([]);const total=ref(0);const page=ref(1);const statusFilter=ref('COLLEGE_APPROVED')
-const currentItem=ref<any>(null);const comment=ref('');const action=ref('CONFIRM');const revisionRequirements=ref('')
+const currentItem=ref<any>(null);const comment=ref('');const action=ref('CONFIRM');const revisionRequirements=ref('');const deadline=ref<string>('')
 
 const typeLabels:Record<string,string>={TEACHING_PLAN:'授课计划',LESSON_PLAN:'教案',COURSEWARE:'课件',EXAM_PLAN:'考核方案'}
 function typeLabel(t:string){return typeLabels[t]||t}
@@ -131,7 +132,7 @@ function scoreColor(s:number){if(s>=90)return'#67C23A';if(s>=75)return'#409EFF';
 function scoreGrade(s:number){if(s>=90)return'优秀';if(s>=75)return'良好';if(s>=60)return'合格';return'待改进'}
 function statusType(s:string){const m:any={AI_EVALUATING:'warning',AI_COMPLETED:'',COLLEGE_APPROVED:'warning',OFFICE_APPROVED:'success',AI_REJECTED:'danger'};return m[s]||'info'}
 function statusLabel(s:string){const m:any={AI_EVALUATING:'AI评审中',AI_COMPLETED:'待主任审核',COLLEGE_APPROVED:'待教务处终审',OFFICE_APPROVED:'已通过',AI_REJECTED:'已驳回'};return m[s]||s}
-function dimLabel(k:string){const m:any={completeness:'内容完整性',standard_match:'课标匹配度',format:'格式规范性',innovation:'创新性'};return m[k]||k}
+function dimLabel(k:string){const m:any={completeness:'内容完整性',standard_match:'课标匹配度',format:'格式规范性',innovation:'创新性',ai_generated:'AI生成检测'};return m[k]||k}
 const dimScores=computed(()=>{try{return JSON.parse(currentItem.value?.dimensionScores||'{}')}catch{return{}}})
 const suggestions=computed(()=>{try{return JSON.parse(currentItem.value?.suggestions||'[]')}catch{return[]}})
 const groupedSuggestions=computed(()=>{if(!Array.isArray(suggestions.value))return[];const map:Record<string,any>={};for(const s of suggestions.value){const d=s.dimension||'综合';if(!map[d])map[d]={dimension:d,issues:[],direction:''};map[d].issues.push(s.issue||'');if(s.direction&&!map[d].direction)map[d].direction=s.direction}return Object.values(map)})
@@ -140,8 +141,8 @@ async function fetchData(){loading.value=true;try{const params:any={page:page.va
 async function openFilePreview(row:any){previewLoading.value=row.id;try{const fres:any=await phaseMaterialApi.getFiles(row.id);const files=fres.data||[];if(!files.length){ElMessage.warning('无附件');return}const f=files[0];const isPdf=f.fileName&&f.fileName.toLowerCase().endsWith('.pdf');if(isPdf){const r:any=await fileApi.preview(f.id);if(r.data?.url)window.open(r.data.url,'_blank')}else{const r:any=await fileApi.preview(f.id);if(r.data?.textContent){txtPreviewName.value=f.fileName;txtPreviewContent.value=r.data.textContent;txtPreviewVisible.value=true}}}catch(e){ElMessage.error('预览失败')}finally{previewLoading.value=0}}
 async function downloadFileRow(row:any){try{const fres:any=await phaseMaterialApi.getFiles(row.id);const files=fres.data||[];if(!files.length){ElMessage.warning('无附件');return}const r:any=await fileApi.download(files[0].id);if(r.data?.url)window.open(r.data.url,'_blank')}catch{ElMessage.error('下载失败')}}
 function openTextPreview(name:string,text:string){txtPreviewName.value=name;txtPreviewContent.value=text;txtPreviewVisible.value=true}
-function showDetail(item:any){currentItem.value=item;action.value='CONFIRM';comment.value='';revisionRequirements.value='';dialogVisible.value=true}
-async function handleReview(a:string){if(a==='REJECT'&&!comment.value){ElMessage.warning('驳回时请填写审核意见');return}saving.value=true;try{await manualReviewApi.review(currentItem.value.evaluationId,{action:a,modifiedScore:null,modifyReason:null,reviewComment:comment.value,revisionRequirements:a==='REJECT'?revisionRequirements.value:null,deadline:null,reviewLevel:'OFFICE'});ElMessage.success(a==='CONFIRM'?'终审通过':'已驳回');dialogVisible.value=false;fetchData()}catch(e:any){ElMessage.error('操作失败')}finally{saving.value=false}}
+function showDetail(item:any){currentItem.value=item;action.value='CONFIRM';comment.value='';revisionRequirements.value='';deadline.value='';dialogVisible.value=true}
+async function handleReview(a:string){if(a==='REJECT'&&!comment.value){ElMessage.warning('驳回时请填写审核意见');return}if(a==='REJECT'&&!revisionRequirements.value){ElMessage.warning('驳回时请填写修改要求');return}saving.value=true;try{await manualReviewApi.review(currentItem.value.evaluationId,{action:a,modifiedScore:null,modifyReason:null,reviewComment:comment.value,revisionRequirements:a==='REJECT'?revisionRequirements.value:null,deadline:a==='REJECT'&&deadline.value?deadline.value:null,reviewLevel:'OFFICE'});ElMessage.success(a==='CONFIRM'?'终审通过':'已驳回');dialogVisible.value=false;fetchData()}catch(e:any){ElMessage.error('操作失败')}finally{saving.value=false}}
 onMounted(()=>fetchData())
 </script>
 

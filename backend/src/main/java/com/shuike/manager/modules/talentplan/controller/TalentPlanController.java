@@ -2,6 +2,7 @@ package com.shuike.manager.modules.talentplan.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.shuike.manager.common.aspect.OperationLog;
 import com.shuike.manager.common.response.ApiResponse;
 import com.shuike.manager.common.response.PageResult;
 import com.shuike.manager.common.security.SecurityUtils;
@@ -44,6 +45,7 @@ public class TalentPlanController {
         return ApiResponse.success(service.getById(id));
     }
 
+    @OperationLog(module = "人培方案管理", action = "CREATE", targetType = "TALENT_PLAN")
     @PostMapping
     @PreAuthorize("hasRole('DEAN')")
     public ApiResponse<TalentCultivationPlan> create(@RequestBody TalentCultivationPlan plan) {
@@ -52,6 +54,7 @@ public class TalentPlanController {
         return ApiResponse.success(plan);
     }
 
+    @OperationLog(module = "人培方案管理", action = "UPDATE", targetType = "TALENT_PLAN")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('DEAN')")
     public ApiResponse<Void> update(@PathVariable Long id, @RequestBody TalentCultivationPlan plan) {
@@ -59,6 +62,7 @@ public class TalentPlanController {
         return ApiResponse.success(null);
     }
 
+    @OperationLog(module = "人培方案管理", action = "DELETE", targetType = "TALENT_PLAN")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('DEAN')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
@@ -66,6 +70,7 @@ public class TalentPlanController {
         return ApiResponse.success(null);
     }
 
+    @OperationLog(module = "人培方案管理", action = "UPDATE", targetType = "TALENT_PLAN")
     @PutMapping("/{id}/mapping")
     @PreAuthorize("hasRole('DEAN')")
     public ApiResponse<Void> updateMapping(@PathVariable Long id, @RequestBody Map<String, String> body) {

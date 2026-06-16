@@ -57,12 +57,51 @@
           <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
         </el-form-item>
       </el-form>
+
+      <!-- 结构化字段编辑（编辑模式可见） -->
+      <el-divider v-if="isEdit" content-position="left">培养目标与课程体系</el-divider>
+      <el-tabs v-if="isEdit" v-model="structTab" type="border-card" style="margin-top:16px">
+        <el-tab-pane label="培养目标" name="targets">
+          <el-input v-model="struct.targets" type="textarea" :rows="5" placeholder="请输入培养目标（每行一条）" />
+        </el-tab-pane>
+        <el-tab-pane label="毕业要求" name="requirements">
+          <el-input v-model="struct.requirements" type="textarea" :rows="5" placeholder="请输入毕业要求（每行一条）" />
+        </el-tab-pane>
+        <el-tab-pane label="课程体系" name="courseSystem">
+          <el-input v-model="struct.courseSystem" type="textarea" :rows="6" placeholder="请输入课程体系描述" />
+        </el-tab-pane>
+        <el-tab-pane label="指标点映射矩阵" name="matrix">
+          <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px" title="填写培养目标与课程的对应关系（0-5）" />
+          <div v-if="matrixTargets.length===0" style="padding:40px;text-align:center;color:var(--color-text-muted)">
+            请先在「培养目标」和「课程体系」标签页中填写内容（每行一条），再回到此处填写映射关系
+          </div>
+          <div v-else style="overflow-x:auto">
+            <table class="matrix-table">
+              <thead>
+                <tr><th style="min-width:120px">课程 \ 目标</th>
+                  <th v-for="(t,i) in matrixTargets" :key="i" style="min-width:100px;font-size:11px">{{ t.substring(0,20) }}</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="(c,ci) in matrixCourses" :key="ci">
+                  <td style="font-weight:500;white-space:nowrap">{{ c.substring(0,20) }}</td>
+                  <td v-for="(t,ti) in matrixTargets" :key="ti" align="center">
+                    <el-input-number v-model="matrixValues[ci][ti]" :min="0" :max="5" size="small" style="width:60px" @change="onMatrixChange" /></td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="margin-top:8px;font-size:11px;color:var(--color-text-muted)">0=无关联 1=弱 3=中 5=强</div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+      <div v-if="isEdit" style="margin-top:16px;text-align:right">
+        <el-button type="primary" :loading="savingStruct" @click="saveStruct">保存结构化字段</el-button>
+      </div>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { collegeApi, fileApi } from '@/api/common'
@@ -71,13 +110,47 @@ import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute(); const router = useRouter(); const authStore = useAuthStore()
 const isEdit = ref(!!route.params.id)
-const deanCollegeId = authStore.userInfo?.collegeId  // 院长的所属学院
-const saving = ref(false)
+const deanCollegeId = authStore.userInfo?.collegeId
+const saving = ref(false); const savingStruct = ref(false)
 const uploading = ref(false)
 const uploadPercent = ref(0)
 const colleges = ref<any[]>([])
 const fileList = ref<any[]>([])
 const parsedText = ref('')
+const structTab = ref('targets')
+
+const struct = reactive({ targets: '', requirements: '', courseSystem: '' })
+const matrixValues = ref<number[][]>([])
+
+const matrixTargets = computed(() => struct.targets.split('\n').filter(l => l.trim()))
+const matrixCourses = computed(() => struct.courseSystem.split('\n').filter(l => l.trim()))
+
+function getMatrix() {
+  const rows: number[][] = []
+  for (let r = 0; r < matrixCourses.value.length; r++) {
+    const row: number[] = []
+    for (let c = 0; c < matrixTargets.value.length; c++) {
+      row.push((matrixValues.value[r] && matrixValues.value[r][c]) || 0)
+    }
+    rows.push(row)
+  }
+  return JSON.stringify(rows)
+}
+
+function onMatrixChange() { /* 触发响应更新 */ }
+
+async function saveStruct() {
+  savingStruct.value = true
+  try {
+    await talentPlanApi.updateMapping(Number(route.params.id), {
+      targets: struct.targets,
+      requirements: struct.requirements,
+      courseSystem: struct.courseSystem,
+      mappingMatrix: getMatrix()
+    })
+    ElMessage.success('结构化字段保存成功')
+  } catch { ElMessage.error('保存失败') } finally { savingStruct.value = false }
+}
 const fileUrl = ref('')
 
 const form = reactive({
@@ -146,7 +219,22 @@ onMounted(async () => {
       Object.assign(form, { majorName: d.majorName, majorCode: d.majorCode, grade: d.grade, collegeId: d.collegeId })
       if (d.contentText) { parsedText.value = d.contentText }
       if (d.fileUrl) { fileUrl.value = d.fileUrl; fileList.value = [{ name: '已上传文档', url: d.fileUrl }] }
+      // 加载结构化字段
+      struct.targets = d.targets || ''
+      struct.requirements = d.requirements || ''
+      struct.courseSystem = d.courseSystem || ''
+      if (d.mappingMatrix) {
+        try { const m = JSON.parse(d.mappingMatrix); if (Array.isArray(m)) matrixValues.value = m } catch {}
+      }
     } catch {}
   }
 })
 </script>
+
+<style scoped>
+.matrix-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.matrix-table th, .matrix-table td { border: 1px solid var(--el-border-color-light); padding: 6px 8px; }
+.matrix-table th { background: var(--el-fill-color-light); font-weight: 600; }
+.matrix-table td { text-align: center; }
+.matrix-table tr:hover td { background: var(--el-fill-color-lighter); }
+</style>

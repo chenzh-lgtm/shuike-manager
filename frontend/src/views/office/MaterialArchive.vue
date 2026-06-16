@@ -13,6 +13,7 @@
         </el-radio-group>
         <el-input v-model="keyword" placeholder="搜索教师/课程/描述" clearable style="width:200px" @change="fetchData"/>
         <el-button type="primary" :disabled="!selectedIds.length" @click="batchDownload">📥 批量下载({{selectedIds.length}})</el-button>
+        <el-button type="success" @click="exportExcel">📊 导出Excel</el-button>
       </div>
       <el-table :data="tableData" v-loading="loading" @selection-change="onSelect" style="width:100%">
         <el-table-column type="selection" width="45"/>
@@ -99,6 +100,16 @@ function openFile(f:any){fileApi.download(f.id).then((r:any)=>{if(r.data?.url)wi
 async function downloadAll(row:any){for(const f of(row.files||[])){try{const r:any=await fileApi.download(f.id);if(r.data?.url)window.open(r.data.url,'_blank')}catch(e){}}}
 
 async function batchDownload(){for(const id of selectedIds.value){const row=tableData.value.find((r:any)=>r.id===id);if(row)await downloadAll(row)}}
+
+async function exportExcel(){
+  try {
+    const params: any = {}; if (filterType.value) params.materialType = filterType.value
+    const res = await http.get('/phase-materials/export/approved', { params, responseType: 'blob' })
+    const url = URL.createObjectURL(new Blob([res as any], { type: 'text/csv;charset=UTF-8' }))
+    const a = document.createElement('a'); a.href = url; a.download = '已通过材料名单.csv'; a.click()
+    URL.revokeObjectURL(url); ElMessage.success('导出成功')
+  } catch { ElMessage.error('导出失败') }
+}
 
 onMounted(()=>fetchData())
 </script>

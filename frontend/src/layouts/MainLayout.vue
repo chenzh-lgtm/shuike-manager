@@ -103,7 +103,9 @@ const allMenuItems: Record<string, any[]> = {
     { path: '/office/colleges', title: '学院管理', icon: '▣' },
     { path: '/office/courses', title: '课程管理', icon: '▤' },
     { path: '/office/semesters', title: '学期管理', icon: '◷' },
-    { path: '/office/prompts', title: 'AI Prompt管理', icon: '⚙' }
+    { path: '/office/prompts', title: 'AI Prompt管理', icon: '⚙' },
+    { path: '/office/operation-logs', title: '操作日志', icon: '📋' },
+    { path: '/office/system-config', title: '系统配置', icon: '🔧' }
   ],
   DEAN: [
     { path: '/dean/dashboard', title: '院长工作台', icon: '⊡' },
